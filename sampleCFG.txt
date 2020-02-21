@@ -1,0 +1,14 @@
+S -> S $
+	| A
+	| B
+A -> A times C
+	| x
+B -> C plus B
+	| y
+C -> z D D
+D -> E F G
+E -> i F
+	| F i
+F -> F o
+	| lambda
+G -> taco
