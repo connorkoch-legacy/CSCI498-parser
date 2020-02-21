@@ -1,0 +1,1 @@
+java -classpath "$PWD/out" Main "$@" # fun fact: not putting quotes around $@ lists the contents of / for the comments example 
