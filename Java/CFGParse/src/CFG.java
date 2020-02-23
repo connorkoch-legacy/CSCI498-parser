@@ -134,10 +134,6 @@ public class CFG {
 	 * @return
 	 */
 	public boolean derivesToLambda(AlphabetCharacter l, Stack<Pair<ProductionRule, AlphabetCharacter>> charStack) {
-		if (!productions.containsKey(l)) {
-			System.out.println("Debugger catch me!");
-		}
-
 		for (ProductionRule p : productions.get(l)) {
 			if (p.isLambdaProduction()) {
 				return true;
