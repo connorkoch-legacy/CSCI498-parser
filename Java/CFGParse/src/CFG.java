@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.Scanner;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class CFG {
 	private Set<AlphabetCharacter> nonterminals = new HashSet<>();
@@ -19,81 +21,69 @@ public class CFG {
 	 * Builds the CFG
 	 * @param inFile Name of the file to be read in
 	 */
-	public CFG(String inFile) {
+	public CFG(String inFile) throws Exception {
 		File file = new File(inFile);
+		Scanner scanner = new Scanner(file);
+		AlphabetCharacter currentLHS = null;
 
-		try {
-			Scanner scanner = new Scanner(file);
-			AlphabetCharacter currentLHS = null;
+		// Read file 1 line at a time
+		while (scanner.hasNextLine()) {
+			// If this is a proper file, there's 2 cases here:
+			// a) [lhs] -> [rhs]
+			// b)       | [rhs], which uses the previously parsed LHS
+			Pattern case1 = Pattern.compile("(?<LHS>.) -> (?<RHS>.+)");
+			Pattern case2 = Pattern.compile("(?: +)\\| (?<RHS>.+)");
+			String line = scanner.nextLine();
 			ProductionRule currentRHS = new ProductionRule();
+			Matcher m = case1.matcher(line);
 
-			// scan by space separated tokens
-			while (scanner.hasNextLine()) {
-				Scanner lineParser = new Scanner(scanner.nextLine());
-				boolean firstTokenInLine = true;
+			// If the first line matches, then extract the two sides and move on
+			if (m.matches()) {
+				currentLHS = new AlphabetCharacter(m.group("LHS"));
+			} else {
+				// Else, hope its an alternation line
+				m = case2.matcher(line);
 
-				// high quality input validation
-				while (lineParser.hasNext()) {
-					String token = lineParser.next();
+				if (!m.matches()) {
+					throw new Exception("Invalid line: " + line);
+				}
+			}
 
-					// alternation means we push a production, reset currentRHS buffer
-					if (token.charAt(0) == '|') {
-						if (!productions.containsKey(currentLHS)) {
-							productions.put(currentLHS, new ArrayList<>());
-						}
-
-						productions.get(currentLHS).add(currentRHS);
-						currentRHS = new ProductionRule();
-
-					// Skip the '->', as it's just a special case of alternation
-					} else if(token.equals("->")) {
+			// Treat the string "lambda" as 1 character.
+			if (m.group("RHS").equals("lambda")) {
+				AlphabetCharacter c = new AlphabetCharacter(m.group("RHS"));
+				currentRHS.addCharacterToRHS(c);
+			} else {
+				// Add all characters on the rightSideString to the appropriate set and to production object
+				for (int i = 0; i < m.group("RHS").length(); i++) {
+					String token = m.group("RHS").substring(i, i + 1);
+					if (token.equals(" ")) { // Skip spaces
 						continue;
-					} else {
-						if (firstTokenInLine) {
-							if (currentLHS != null) {
-								if (!productions.containsKey(currentLHS)) {
-									productions.put(currentLHS, new ArrayList<>());
-								}
+					}
+					AlphabetCharacter c = new AlphabetCharacter(token);
 
-								productions.get(currentLHS).add(currentRHS);
-								currentRHS = new ProductionRule();
-							}
-
-							currentLHS = new AlphabetCharacter(token);
-						} else {
-							AlphabetCharacter c = new AlphabetCharacter(token);
-
-							if (c.isNonTerminal()) {
-								nonterminals.add(c);
-							}
-							else if (!c.isEOF() && !c.isLambda()){
-								terminals.add(c);
-							}
-
-							currentRHS.addCharacterToRHS(c);
-
-							// TODO: Can more than 1 production rule contain $? I think *yes*, but this doesn't handle that
-							if (c.isEOF()) {
-								startingRule.put(currentLHS, currentRHS);
-							}
-						}
+					if (c.isNonTerminal()) {
+						nonterminals.add(c);
+					}
+					else if (!c.isEOF() && !c.isLambda()){
+						terminals.add(c);
 					}
 
-					firstTokenInLine = false;
-				}
+					currentRHS.addCharacterToRHS(c);
 
+					// Log the starting rule
+					if (c.isEOF()) {
+						startingRule.put(currentLHS, currentRHS);
+					}
+				}
 			}
 
-			// add anything remaining in the token buffer
-			if (currentLHS != null) {
-				if (!productions.containsKey(currentLHS)) {
-					productions.put(currentLHS, new ArrayList<>());
-				}
-				productions.get(currentLHS).add(currentRHS);
+			// Add the productionrule to the map
+			if (!productions.containsKey(currentLHS)) {
+				productions.put(currentLHS, new ArrayList<>());
 			}
 
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
+			productions.get(currentLHS).add(currentRHS);
 		}
 	}
 
