@@ -15,11 +15,8 @@ public class AlphabetCharacter {
 	}
 
 	public static boolean isTerminalToken(String token) {
-		for (char c: token.toCharArray()) {
-			if (c < 65 || c > 90)
-				return false;
-		}
-		return true;
+		// terminals === not uppercase. So if we convert the token to lowercase, and it's the same, then it's a terminal!
+		return token.toLowerCase().equals(token);
 	}
 
 	public boolean equals(String a) {
