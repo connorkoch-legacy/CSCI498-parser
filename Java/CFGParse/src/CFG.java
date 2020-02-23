@@ -12,8 +12,8 @@ public class CFG {
 	private Set<AlphabetCharacter> terminals = new HashSet<>();
 
 	// nonterminal -> list[sequence of alphabet chars]
-	private Map<AlphabetCharacter, ArrayList<ArrayList<AlphabetCharacter>>> productions = new HashMap<>();
-	private Map<AlphabetCharacter, ArrayList<AlphabetCharacter>> startingRule = new HashMap<>();
+	private Map<AlphabetCharacter, ArrayList<ProductionRule>> productions = new HashMap<>();
+	private Map<AlphabetCharacter, ProductionRule> startingRule = new HashMap<>();
 
 	/**
 	 * Builds the CFG
@@ -25,7 +25,7 @@ public class CFG {
 		try {
 			Scanner scanner = new Scanner(file);
 			AlphabetCharacter currentLHS = null;
-			ArrayList<AlphabetCharacter> currentRHS = new ArrayList<>();
+			ProductionRule currentRHS = new ProductionRule();
 
 			// scan by space separated tokens
 			while (scanner.hasNextLine()) {
@@ -43,7 +43,7 @@ public class CFG {
 						}
 
 						productions.get(currentLHS).add(currentRHS);
-						currentRHS = new ArrayList<>();
+						currentRHS = new ProductionRule();
 
 					// Skip the '->', as it's just a special case of alternation
 					} else if(token.equals("->")) {
@@ -56,7 +56,7 @@ public class CFG {
 								}
 
 								productions.get(currentLHS).add(currentRHS);
-								currentRHS = new ArrayList<>();
+								currentRHS = new ProductionRule();
 							}
 
 							currentLHS = new AlphabetCharacter(token);
@@ -70,7 +70,7 @@ public class CFG {
 								terminals.add(c);
 							}
 
-							currentRHS.add(c);
+							currentRHS.addCharacterToRHS(c);
 
 							// TODO: Can more than 1 production rule contain $? I think *yes*, but this doesn't handle that
 							if (c.isEOF()) {
@@ -123,6 +123,8 @@ public class CFG {
 		return firstSet;
 	}
 
+//	public boolean derivesToLambda(AlphabetCharacter l, Stack<>)
+
 	@Override
 	public String toString() {
 		// Generate terminals
@@ -144,13 +146,13 @@ public class CFG {
 
 		for (AlphabetCharacter key: productions.keySet()) {
 			for (int i = 0; i < productions.get(key).size(); i++) {
-				ArrayList<AlphabetCharacter> rhs = productions.get(key).get(i);
+				ProductionRule rhs = productions.get(key).get(i);
 				// Generates: #) A ->
 				out.append(ruleNumber++).append(") ");
 				out.append(key).append(" -> ");
 
 				// Build the RHS
-				for (AlphabetCharacter c: rhs)
+				for (AlphabetCharacter c: rhs.rhs)
 					out.append(c).append(" ");
 
 				out.append("\n");
@@ -169,7 +171,7 @@ public class CFG {
 		for (AlphabetCharacter key : startingRule.keySet()) {
 			out.append(key).append(" -> ");
 
-			for (AlphabetCharacter c : startingRule.get(key)) {
+			for (AlphabetCharacter c : startingRule.get(key).rhs) {
 				out.append(c).append(" ");
 			}
 		}
