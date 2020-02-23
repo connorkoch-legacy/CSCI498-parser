@@ -1,17 +1,14 @@
-import java.util.Set;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.ArrayList;
-import java.util.Scanner;
+import javafx.util.Pair;
+
+import java.util.*;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class CFG {
 	private Set<AlphabetCharacter> nonterminals = new HashSet<>();
 	private Set<AlphabetCharacter> terminals = new HashSet<>();
+	private Set<AlphabetCharacter> derivesToLambdaSet = new HashSet<>();
 
 	// nonterminal -> list[sequence of alphabet chars]
 	private Map<AlphabetCharacter, ArrayList<ProductionRule>> productions = new HashMap<>();
@@ -88,6 +85,23 @@ public class CFG {
 	}
 
 	/**
+	 * Calls derivesToLambda? on all non-terminals
+	 */
+	public void generateDerivesToLambdaSet() {
+		for (AlphabetCharacter l : productions.keySet()) {
+			if (this.derivesToLambda(l, new Stack<>())) {
+				derivesToLambdaSet.add(l);
+			}
+		}
+
+		System.out.print("Derives to Lambda: ");
+		for (AlphabetCharacter l : derivesToLambdaSet) {
+			System.out.print(l + " ");
+		}
+		System.out.println();
+	}
+
+	/**
 	 * Gets the follow set
 	 * DO NOT IMPLEMENT
 	 */
@@ -113,7 +127,49 @@ public class CFG {
 		return firstSet;
 	}
 
-//	public boolean derivesToLambda(AlphabetCharacter l, Stack<>)
+	/**
+	 * Implements the derivesToLambda procedure given in Keith's pseudocode
+	 * @param l - AlphabetCharacter asked about
+	 * @param charStack - An empty stack
+	 * @return
+	 */
+	public boolean derivesToLambda(AlphabetCharacter l, Stack<Pair<ProductionRule, AlphabetCharacter>> charStack) {
+		if (!productions.containsKey(l)) {
+			System.out.println("Debugger catch me!");
+		}
+
+		for (ProductionRule p : productions.get(l)) {
+			if (p.isLambdaProduction()) {
+				return true;
+			}
+
+			if (p.containsTerminal()) {
+				continue;
+			}
+
+			boolean allDeriveToLambda = true;
+			for (AlphabetCharacter xi : p.rhs) {
+				Pair<ProductionRule, AlphabetCharacter> thisPair = new Pair<>(p, xi);
+				if (charStack.contains(thisPair)) {
+					continue;
+				}
+
+				charStack.push(thisPair);
+				allDeriveToLambda = derivesToLambda(xi, charStack);
+				charStack.pop();
+
+				if (!allDeriveToLambda) {
+					break;
+				}
+			}
+
+			if (allDeriveToLambda) {
+				return true;
+			}
+		}
+
+		return false;
+	}
 
 	@Override
 	public String toString() {

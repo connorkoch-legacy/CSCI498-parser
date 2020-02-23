@@ -31,7 +31,7 @@ public class ProductionRule {
      */
     public boolean containsTerminal() {
         for (AlphabetCharacter c : rhs) {
-            if (!c.isNonTerminal()) {
+            if (c.isNonTerminal() == false) {
                 return true;
             }
         }
