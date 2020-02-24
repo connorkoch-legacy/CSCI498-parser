@@ -1,0 +1,7 @@
+S -> z A z $
+A -> z z A z z
+   | B A B
+   | λ
+B -> C A C
+C -> e A f
+   | λ

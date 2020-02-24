@@ -1,0 +1,5 @@
+S -> D $
+D -> A C B | C b b | B a
+A -> d a | B C
+B -> g | lambda
+C -> h | lambda
