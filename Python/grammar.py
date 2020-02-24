@@ -22,10 +22,6 @@ class CFG:
                 return True
         
         return False
-
-
-    def first(self, rule):
-        print(rule)
     
     def derives_to_lambda(self, rule):
         assert rule in self.production_rules
@@ -52,6 +48,41 @@ class CFG:
 
         return False        
 
+    # stub so follow_set will at least run--fix this
+    def first_set(self, foo, bar):
+        return (set(), set())
+
+    # A is the nonterminal whose follow set we want; T is our visited set
+    # returns follow set of A and updated visited set T
+    # this follows Keith's pseudocode *very* closely
+    def follow_set(self, A, T=set()):
+        if A in T:
+            return (set(), T)
+
+        T.add(A)
+        F = set()
+        # for each rule with A in its rhs
+        for lhs in self.production_rules:
+            for rhs in self.production_rules[lhs]:
+                if A not in rhs:
+                    continue
+
+                # find each instance of A in the rhs
+                indices = [i for i, x in enumerate(my_list) if x == A]
+                # XB is the sequence of all grammar symbols following each instance of A
+                for index in indices:
+                    XB = rhs[index:]
+                    # if XB exists, then add the first set of XB
+                    if len(XB) > 0:
+                        (G, I) = first_set(XB, set())
+                        F = F | G  # | is the set union operator
+
+                    # if XB does not exist or it has no terminals and all its members derive to λ, then add the follow set of whatever produced A
+                    if not len(XB) or (not len(XB & self.terminals) and all([derives_to_lambda(C) for C in XB])):  # & is the set intersection operator
+                        (G, S) = follow_set(lhs, T)
+                        F = F | G
+
+        return (F, T)
 
 #Read CFG from file
 file_name = sys.argv[1]
