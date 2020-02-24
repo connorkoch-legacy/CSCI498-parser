@@ -1,5 +1,3 @@
-import javafx.util.Pair;
-
 import java.util.*;
 import java.io.File;
 import java.util.regex.Matcher;
