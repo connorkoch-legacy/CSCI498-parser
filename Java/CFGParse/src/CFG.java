@@ -5,6 +5,7 @@ import java.io.File;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+
 public class CFG {
 	private Set<AlphabetCharacter> nonterminals = new HashSet<>();
 	private Set<AlphabetCharacter> terminals = new HashSet<>();
@@ -220,5 +221,31 @@ public class CFG {
 
 		return out.toString();
 	}
+
+	public void deriveFirstSet(,Set<AlphabetCharacter> T){
+		if(x ){
+
+		}
+
+		Set<AlphabetCharacter> F = new HashSet<AlphabetCharacter>();
+
+		if(!T.contains(x)){
+			T.add(x);
+			for(ProductionRule p : ){
+				AlphabetCharacter R = p.rhs;
+				 = deriveFirstSet(R,T);
+
+			}
+		}
+
+		if(derivesToLambdaSet(x,charStack)){
+
+		}
+
+
+	}
+
+
+	
 
 }
