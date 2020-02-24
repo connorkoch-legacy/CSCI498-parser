@@ -2,6 +2,7 @@
 
 import sys
 from collections import defaultdict
+from pprint import pprint
 
 class CFG:
 
@@ -49,9 +50,41 @@ class CFG:
         return False        
 
     # stub so follow_set will at least run--fix this
-    def first_set(self, foo, bar):
-        return (set(), set())
+    def first_set(self, XB, T=set()):
+        if not XB:
+            return (set(), set())
 
+        result = set()
+        X = XB[0]
+
+        if X in self.terminals:
+            result.add(X)
+            return (result, T) 
+
+        if X not in T:
+            T.add(X)
+
+            for lhs, alternations in list(self.production_rules.items()):
+                for rhs in alternations:
+                    indices = (i for i, x in enumerate(rhs) if x == X)
+
+                    for index in indices:
+                        # AB is the sequence of grammar symbols with X on
+                        # the LHS of of some production rule P.
+                        AB = rhs[index + 1:]
+                        for p in AB:
+                            rules = self.production_rules[p]
+
+                            for rule in rules:
+                                G, S = self.first_set(rule, T)
+                                result.update(G)
+
+        if X == "lambda" or self.derives_to_lambda(X):
+            G, S = self.first_set(XB[1:], T)
+            result.update(G)
+        
+        return (result, T)
+              
     # A is the nonterminal whose follow set we want; T is our visited set
     # returns follow set of A and updated visited set T
     # this follows Keith's pseudocode *very* closely
@@ -62,25 +95,24 @@ class CFG:
         T.add(A)
         F = set()
         # for each rule with A in its rhs
-        for lhs in self.production_rules:
-            for rhs in self.production_rules[lhs]:
-                if A not in rhs:
-                    continue
+        for lhs, rhs in list(self.production_rules.items()):
+            if A not in rhs:
+                continue
 
-                # find each instance of A in the rhs
-                indices = [i for i, x in enumerate(my_list) if x == A]
-                # XB is the sequence of all grammar symbols following each instance of A
-                for index in indices:
-                    XB = rhs[index:]
-                    # if XB exists, then add the first set of XB
-                    if len(XB) > 0:
-                        (G, I) = first_set(XB, set())
-                        F = F | G  # | is the set union operator
+            # find each instance of A in the rhs
+            indices = (i for i, x in enumerate(rhs) if x == A)
+            # XB is the sequence of all grammar symbols following each instance of A
+            for index in indices:
+                XB = rhs[index:]
+                # if XB exists, then add the first set of XB
+                if len(XB) > 0:
+                    G, S = self.first_set(XB)
+                    F = F | G  # | is the set union operator
 
-                    # if XB does not exist or it has no terminals and all its members derive to λ, then add the follow set of whatever produced A
-                    if not len(XB) or (not len(XB & self.terminals) and all([derives_to_lambda(C) for C in XB])):  # & is the set intersection operator
-                        (G, S) = follow_set(lhs, T)
-                        F = F | G
+                # if XB does not exist or it has no terminals and all its members derive to λ, then add the follow set of whatever produced A
+                if not len(XB) or (not len(set(XB) & self.terminals) and all((self.derives_to_lambda(C) for C in XB))):  # & is the set intersection operator
+                    (G, S) = follow_set(lhs, T)
+                    F = F | G
 
         return (F, T)
 
@@ -133,4 +165,4 @@ for k,v in cfg.production_rules.items():
 
 print(f"\nGrammar Start Symbol or Goal: {cfg.start_symbol}")
 print()
-print(f"d2L(F) => {cfg.derives_to_lambda('F')}")
+print(cfg.follow_set("A"))
