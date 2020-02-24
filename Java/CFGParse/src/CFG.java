@@ -166,6 +166,46 @@ public class CFG {
 		return false;
 	}
 
+	public Set<AlphabetCharacter> deriveFirstSet(ArrayList<AlphabetCharacter> xBeta, Set<AlphabetCharacter> T){ //xBeta is a valid sequence of grammar elements and T is an empty set
+		ArrayList<AlphabetCharacter> x = new ArrayList<AlphaCharacter>();
+		ArrayList<AlphabetCharacter> beta = new ArrayList<AlphaCharacter>();
+		x.add(xBeta.at(0)); //x is first symbol in sequence of grammar elements
+
+		for(int i = 1; i < xBeta.size()-1; i++){
+			beta.add(xBeta.at(i)); //beta is the rest of the symbols in sequence of grammar elements
+		}
+
+		if(!x.isNonTerminal()){ //if x is a terminal then return x
+			Set<AlphabetCharacter> xSet = Set<AlphabetCharacter>(x);
+			return xSet;
+		}
+
+		Set<AlphabetCharacter> F = new Set<AlphabetCharacter>();
+		Pair<HashSet<AlphabetCharacter>, HashSet<AlphabetCharacter>> GS;
+
+		if(!T.contains(x)){ //if x is not in set T
+			T.add(x);
+			for(ProductionRule p : productions.get(x)){
+				ArrayList<AlphabetCharacter> R = new ArrayList<AlphabetCharacter>();
+				R = p.rhs; //let R be the RHS of p
+				GS = deriveFirstSet(R,T);
+				G = GS.getKey();
+				F.addAll(G);
+
+			}
+		}
+
+		if(derivesToLambda(x,new Stack<>())){
+			GS = deriveFirstSet(beta, T);
+			G = GS.getKey();
+			F.addAll(G);
+		}
+
+		return F;
+
+
+	}
+
 
 	public void followSet(AlphabetCharacter A, Set<AlphabetCharacter> T){	//A is a nonterminal, T is an empty set
 		if(T.contains(A))
@@ -269,28 +309,9 @@ public class CFG {
 		return out.toString();
 	}
 
-	public void deriveFirstSet(,Set<AlphabetCharacter> T){
-		if(x ){
-
-		}
-
-		Set<AlphabetCharacter> F = new HashSet<AlphabetCharacter>();
-
-		if(!T.contains(x)){
-			T.add(x);
-			for(ProductionRule p : ){
-				AlphabetCharacter R = p.rhs;
-				 = deriveFirstSet(R,T);
-
-			}
-		}
-
-		if(derivesToLambdaSet(x,charStack)){
-
-		}
 
 
-	}
+
 
 
 
