@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 import sys
 from collections import defaultdict
 
@@ -8,6 +10,47 @@ class CFG:
         self.terminals = set()
         self.non_terminals = set()
         self.start_symbol = ""
+
+    def contains_terminal(self, production):
+        return any(map(lambda e: e in self.terminals or e == self.start_symbol, production))
+
+    def contains_lambda(self, rule):
+        assert rule in self.production_rules
+
+        for production in self.production_rules[rule]:
+            if len(production) is 1 and production[0] == "lambda":
+                return True
+        
+        return False
+
+
+    def first(self, rule):
+        print(rule)
+    
+    def derives_to_lambda(self, rule):
+        assert rule in self.production_rules
+        
+        if self.contains_lambda(rule):
+            return True
+
+        alternations = self.production_rules[rule]
+
+        for rhs in alternations:
+            # rhs's that have a terminal cannot
+            # derive to lambda by definition
+            if self.contains_terminal(rhs):
+                continue
+            
+            # If any production doesn't derive to lambda in the
+            # rhs, then that rhs does not derive to lambda.
+            if any(map(lambda prod: not self.derives_to_lambda(prod), rhs)):
+                continue
+
+            # If we've made it this far, then the rhs derives to lambda
+            # and therefore the rule derives to lambda.
+            return True
+
+        return False        
 
 
 #Read CFG from file
@@ -58,3 +101,5 @@ for k,v in cfg.production_rules.items():
         counter += 1
 
 print(f"\nGrammar Start Symbol or Goal: {cfg.start_symbol}")
+print()
+print(f"d2L(F) => {cfg.derives_to_lambda('F')}")
