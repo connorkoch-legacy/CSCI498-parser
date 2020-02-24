@@ -107,12 +107,12 @@ public class CFG {
 	public Set<AlphabetCharacter> getFollowSet(AlphabetCharacter c) {
 		if (c.followSet != null)
 			return c.followSet;
-		Set<AlphabetCharacter> followSet = new HashSet<>();
+		Set<AlphabetCharacter> followSet = followSet(c, new HashSet<>());
 		return followSet;
 	}
 
 	/**
-	 * Gets the first set 
+	 * Gets the first set
 	 * DO NOT IMPLEMENT
 	 */
 	public Set<AlphabetCharacter> getFirstSet(AlphabetCharacter c) {
@@ -165,6 +165,55 @@ public class CFG {
 
 		return false;
 	}
+
+
+	public void followSet(AlphabetCharacter A, Set<AlphabetCharacter> T){	//A is a nonterminal, T is an empty set
+		if(T.contains(A))
+			return new Pair<AlphabetCharacter, Set<AlphabetCharacter>>(new HashSet<AlphabetCharacter>(), T);
+
+		T.add(A);
+		HashSet<AlphabetCharacter> F = new HashSet<>();
+
+		for(Map.Entry<AlphabetCharacter, ArrayList<ProductionRule>> p : this.productions.entrySet()){
+			ArrayList<ProductionRule> RHS = new ArayList<>();
+			for(int i = 0; i < p.getValue().size(); i++){
+				if(RHS[i].equals(A)){	// for every symbol on the RHS that equals A
+					ArrayList<ProductionRule> XB;
+					if(i == RHS.size()-1)
+						XB = null;
+					else
+						XB = RHS.subList(i+1, RHS.size());
+
+					if(XB != null){
+						Pair<HashSet<AlphabetCharacter>, HashSet<AlphabetCharacter>> GI
+							= deriveFirstSet(new Pair<ArrayList<ProductionRule>, HashSet<ProductionRule>>(XB, new HashSet<ProductionRule>()));
+
+						G = GI.getKey();
+						F.addAll(G);
+
+					}
+
+					HashSet<ProductionRule> XBset = new HashSet<>(XB);
+					XBset.retainAll(this.terminals);
+
+					boolean allXBderivesToLambda = true;
+					for(AlphabetCharacter C : XB){
+						if(!derivesToLambda(C, new Stack<>()))
+							allXBderivesToLambda = false;
+					}
+
+					if(XB == null || (XBset.empty() && allXBderivesToLambda)){
+						Pair<HashSet<AlphabetCharacter>, HashSet<AlphabetCharacter>> GS = followSet(p.getKey(), T);
+
+						G = GS.getKey();
+						F.addAll(G);
+					}
+				}
+			}
+		}
+		return new Pair<HashSet<AlphabetCharacter>, HashSet<AlphabetCharacter>>(F, T);
+	}
+
 
 	@Override
 	public String toString() {
@@ -244,6 +293,6 @@ public class CFG {
 	}
 
 
-	
+
 
 }
