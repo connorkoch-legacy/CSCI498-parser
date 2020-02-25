@@ -51,7 +51,9 @@ class CFG:
 
         return False        
 
-    def first_set(self, XB, T=set()):
+    def first_set(self, XB, T=None):
+        if T is None:
+            T = set()
         if not XB:
             return (set(), set())
 
@@ -90,7 +92,9 @@ class CFG:
     # A is the nonterminal whose follow set we want; T is our visited set
     # returns follow set of A and updated visited set T
     # this follows Keith's pseudocode *very* closely
-    def follow_set(self, A, T=set()):
+    def follow_set(self, A, T=None):
+        if T is None:
+            T = set()
         if A in T:
             return (set(), T)
 
@@ -171,5 +175,7 @@ for k,v in cfg.production_rules.items():
 print(f"\nGrammar Start Symbol or Goal: {cfg.start_symbol}")
 print()
 
+print(cfg.follow_set("S")[0])
+print(cfg.follow_set("A")[0])
 print(cfg.follow_set("B")[0])
 print(cfg.follow_set("C")[0])
