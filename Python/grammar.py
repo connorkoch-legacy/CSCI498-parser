@@ -58,7 +58,7 @@ class CFG:
         result = set()
         X = XB[0]
 
-        if X in self.terminals:
+        if X in self.terminals or X == '$':
             result.add(X)
             return (result, T) 
 
@@ -107,7 +107,7 @@ class CFG:
                 indices = (i for i, x in enumerate(rhs) if x == A)
                 # XB is the sequence of all grammar symbols following each instance of A
                 for index in indices:
-                    XB = rhs[index:]
+                    XB = rhs[index + 1:]
                     # if XB exists, then add the first set of XB
                     if len(XB) > 0:
                         G, S = self.first_set(XB)
@@ -126,7 +126,8 @@ cfg = CFG()
 with open(file_name) as f:
     current_LHS = ""
     for line in f:
-        line = line.strip("\n")
+        # line = line.strip("\n")
+        line = line.strip()
 
         tokens = line.split(" ")
         #check if this line is a production
@@ -170,4 +171,5 @@ for k,v in cfg.production_rules.items():
 print(f"\nGrammar Start Symbol or Goal: {cfg.start_symbol}")
 print()
 
-print(cfg.follow_set("A")[0])
+print(cfg.follow_set("B")[0])
+print(cfg.follow_set("C")[0])
