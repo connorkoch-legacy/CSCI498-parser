@@ -1,7 +1,7 @@
 S -> z A z $
 A -> z z A z z
    | B A B
-   | λ
+   | lambda
 B -> C A C
 C -> e A f
-   | λ
+   | lambda

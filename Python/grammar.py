@@ -25,6 +25,8 @@ class CFG:
         return False
     
     def derives_to_lambda(self, rule):
+        if rule == '$':
+            return False
         assert rule in self.production_rules
         
         if self.contains_lambda(rule):
@@ -108,7 +110,7 @@ class CFG:
                     XB = rhs[index:]
                     # if XB exists, then add the first set of XB
                     if len(XB) > 0:
-                        G, S = self.first_set(XB)  # modifies self.production_rules!!!
+                        G, S = self.first_set(XB)
                         F = F | G  # | is the set union operator
 
                     # if XB does not exist or it has no terminals and all its members derive to λ, then add the follow set of whatever produced A
