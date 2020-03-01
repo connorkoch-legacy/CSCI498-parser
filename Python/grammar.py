@@ -4,10 +4,10 @@ import sys
 from collections import defaultdict
 from pprint import pprint
 
-class CFG:
 
+class CFG:
     def __init__(self):
-        self.production_rules = defaultdict(list)   #{ LHS : list of lists }, where inner lists are possible alternations}
+        self.production_rules = defaultdict(list) #{ LHS -> list of lists }, where inner lists are possible alternations}
         self.terminals = set()
         self.non_terminals = set()
         self.start_symbol = ""
@@ -21,14 +21,14 @@ class CFG:
         for production in self.production_rules[rule]:
             if len(production) == 1 and production[0] == "lambda":
                 return True
-        
+
         return False
-    
+
     def derives_to_lambda(self, rule):
         if rule == '$':
             return False
         assert rule in self.production_rules
-        
+
         if self.contains_lambda(rule):
             return True
 
@@ -39,7 +39,7 @@ class CFG:
             # derive to lambda by definition
             if self.contains_terminal(rhs):
                 continue
-            
+
             # If any production doesn't derive to lambda in the
             # rhs, then that rhs does not derive to lambda.
             if any(map(lambda prod: not self.derives_to_lambda(prod), rhs)):
@@ -49,7 +49,7 @@ class CFG:
             # and therefore the rule derives to lambda.
             return True
 
-        return False        
+        return False
 
     def first_set(self, XB, T=None):
         if T is None:
@@ -62,7 +62,7 @@ class CFG:
 
         if X in self.terminals or X == '$':
             result.add(X)
-            return (result, T) 
+            return (result, T)
 
         if X not in T:
             T.add(X)
@@ -86,9 +86,9 @@ class CFG:
         if X == "lambda" or self.derives_to_lambda(X):
             G, S = self.first_set(XB[1:], T)
             result.update(G)
-        
+
         return result, T
-              
+
     # A is the nonterminal whose follow set we want; T is our visited set
     # returns follow set of A and updated visited set T
     # this follows Keith's pseudocode *very* closely
@@ -124,7 +124,26 @@ class CFG:
 
         return (F, T)
 
-#Read CFG from file
+    # Returns the predict set for this production rule: LHS -> RHS
+    #   LHS: Single nonterminal
+    #   RHS: List of characters
+    def predict_set(self, LHS, RHS):
+        result = self.first_set(RHS)[0]
+
+        for x in RHS:
+            # Break if this isn't a non terminal, or it's a terminal that doesn't derive to lambda
+            if x == 'lambda':
+                continue
+            if (x not in self.non_terminals) or not self.derives_to_lambda(x):
+                break
+        else:
+            # If we never break, all derive to lambda
+            result = result.union(self.follow_set(LHS)[0])
+
+        return result
+
+
+# Read CFG from file
 file_name = sys.argv[1]
 cfg = CFG()
 with open(file_name) as f:
@@ -167,9 +186,10 @@ print(f"Terminals: {', '.join(sorted(list(cfg.terminals)))}")
 print(f"Non-terminals: {', '.join(sorted(list(cfg.non_terminals)))}\n")
 
 counter = 1
-for k,v in cfg.production_rules.items():
+for k, v in cfg.production_rules.items():
     for production in v:
         print(f"({counter})\t {k} -> {' '.join(production)}")
+        print("Predict", cfg.predict_set(k, production))
         counter += 1
 
 print(f"\nGrammar Start Symbol or Goal: {cfg.start_symbol}")
