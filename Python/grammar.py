@@ -142,6 +142,18 @@ class CFG:
 
         return result
 
+    def test_disjoint(self):
+        for k, v in cfg.production_rules.items():
+            all_predict_sets = set()
+            for production in v:
+                print(f"{k} -> {' '.join(production)}")
+                this_predict = cfg.predict_set(k, production)
+                if all_predict_sets.isdisjoint(this_predict):
+                    all_predict_sets = all_predict_sets.union(this_predict)
+                else:
+                    return False
+                # print("Predict", cfg.predict_set(k, production))
+        return True
 
 # Read CFG from file
 file_name = sys.argv[1]
@@ -199,3 +211,5 @@ print(cfg.follow_set("S")[0])
 print(cfg.follow_set("A")[0])
 print(cfg.follow_set("B")[0])
 print(cfg.follow_set("C")[0])
+
+print(cfg.test_disjoint())
