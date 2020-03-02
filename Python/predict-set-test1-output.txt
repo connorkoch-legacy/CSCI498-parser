@@ -1,0 +1,50 @@
+Terminals: b, c, e, g, h, z
+Non-terminals: A, B, C, E, F, G, H, S
+
+(1)	 S -> z $
+Predict {'z'}
+(2)	 A -> B C
+Predict {'c'}
+(3)	 A -> E F G H
+Predict {'g', 'e', 'h'}
+(4)	 A -> H
+Predict set()
+(5)	 B -> b
+Predict {'b'}
+(6)	 C -> lambda
+Predict {'e', 'h', 'g'}
+(7)	 C -> c
+Predict {'c'}
+(8)	 E -> lambda
+Predict {'h', 'g'}
+(9)	 E -> e
+Predict {'e'}
+(10)	 F -> C E
+Predict {'e', 'h', 'g'}
+(11)	 G -> g
+Predict {'g'}
+(12)	 H -> lambda
+Predict set()
+(13)	 H -> h
+Predict {'h'}
+
+Grammar Start Symbol or Goal: S
+
+First sets:
+A : set()
+E : {'e', 'h', 'g'}
+H : set()
+S : set()
+G : {'h'}
+C : {'e'}
+B : {'c'}
+F : {'h', 'g'}
+Follow sets:
+A : set()
+E : {'h', 'g'}
+H : set()
+S : set()
+G : set()
+C : {'e', 'h', 'g'}
+B : {'e'}
+F : {'h'}

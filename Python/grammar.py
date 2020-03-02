@@ -19,7 +19,7 @@ class CFG:
         return any(map(lambda e: e in self.terminals or e == self.start_symbol, production))
 
     def contains_lambda(self, rule):
-        assert rule in self.production_rules
+        # assert rule in self.production_rules
 
         for production in self.production_rules[rule]:
             if len(production) == 1 and production[0] == "lambda":
@@ -30,7 +30,7 @@ class CFG:
     def derives_to_lambda(self, rule):
         if rule == '$':
             return False
-        assert rule in self.production_rules
+        # assert rule in self.production_rules
 
         if self.contains_lambda(rule):
             return True
@@ -231,16 +231,24 @@ def print_stuff(cfg):
     print(f"\nGrammar Start Symbol or Goal: {cfg.start_symbol}")
     print()
 
-    print(cfg.follow_set("S")[0])
-    print(cfg.follow_set("A")[0])
-    print(cfg.follow_set("B")[0])
-    print(cfg.follow_set("C")[0])
+    # print(cfg.follow_set("S")[0])
+    # print(cfg.follow_set("A")[0])
+    # print(cfg.follow_set("B")[0])
+    # print(cfg.follow_set("C")[0])
 
-    print(cfg.test_disjoint())
+    print("First sets:")
+    for nt in cfg.non_terminals:
+        print(nt, ":", cfg.first_set(nt)[0])
 
-    for k,v in cfg.ll1_parse_table.items():
-        print(k, " : ", v)
+    print("Follow sets:")
+    for nt in cfg.non_terminals:
+        print(nt, ":", cfg.follow_set(nt)[0])
 
+
+    # print(cfg.test_disjoint())
+    #
+    # for k,v in cfg.ll1_parse_table.items():
+    #     print(k, " : ", v)
 
 
 def main():
@@ -253,4 +261,5 @@ def main():
     print(pt)
 
 
-main()
+# main()
+print_stuff(parse_input_file())

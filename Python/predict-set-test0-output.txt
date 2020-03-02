@@ -1,0 +1,41 @@
+=== Predict Set Test0 Output ===
+Terminals: a, b, c, d, q
+Non-terminals: A, B, C, Q, S, START
+
+(1)	 START -> S $
+Predict {'$'}
+(2)	 S -> A C
+Predict {'c', '$'}
+(3)	 C -> c
+Predict {'c'}
+(4)	 C -> lambda
+Predict {'$', 'd'}
+(5)	 A -> a B C d
+Predict {'a'}
+(6)	 A -> B Q
+Predict {'c', '$', 'q'}
+(7)	 B -> b B
+Predict {'b'}
+(8)	 B -> lambda
+Predict {'$', 'd'}
+(9)	 Q -> q
+Predict {'q'}
+(10)	 Q -> lambda
+Predict {'$'}
+
+Grammar Start Symbol or Goal: START
+
+First sets:
+START : set()
+B : {'c', 'q'}
+A : {'c'}
+S : set()
+Q : set()
+C : set()
+Follow sets:
+START : set()
+B : {'$', 'd'}
+A : {'$'}
+S : {'$'}
+Q : {'$'}
+C : {'$', 'd'}
