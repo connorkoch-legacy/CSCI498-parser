@@ -11,6 +11,7 @@ class CFG:
         self.terminals = set()
         self.non_terminals = set()
         self.start_symbol = ""
+        self.ll1_parse_table = {}
 
     def contains_terminal(self, production):
         return any(map(lambda e: e in self.terminals or e == self.start_symbol, production))
@@ -143,11 +144,11 @@ class CFG:
         return result
 
     def test_disjoint(self):
-        for k, v in cfg.production_rules.items():
+        for k, v in self.production_rules.items():
             all_predict_sets = set()
             for production in v:
                 print(f"{k} -> {' '.join(production)}")
-                this_predict = cfg.predict_set(k, production)
+                this_predict = self.predict_set(k, production)
                 if all_predict_sets.isdisjoint(this_predict):
                     all_predict_sets = all_predict_sets.union(this_predict)
                 else:
@@ -155,61 +156,97 @@ class CFG:
                 # print("Predict", cfg.predict_set(k, production))
         return True
 
-# Read CFG from file
-file_name = sys.argv[1]
-cfg = CFG()
-with open(file_name) as f:
-    current_LHS = ""
-    for line in f:
-        # line = line.strip("\n")
-        line = line.strip()
+    #creates the parsing table, which is a dictionary of dictionaries
+    # { non-terminal : { terminal : production-rule number } }
+    def create_LL1_parsing_table(self):
+        rule_counter = 1
+        for LHS, RHS in self.production_rules.items():
+            if LHS not in self.ll1_parse_table:
+                self.ll1_parse_table[LHS] = {}
 
-        tokens = line.split(" ")
-        #check if this line is a production
-        if tokens[1] == "->":
-            current_LHS = tokens[0]
-            RHS_tokens = tokens[2:]
-            cfg.non_terminals.add(current_LHS)
-        else:   #else line starts with alternation
-            RHS_tokens = tokens[1:]
+            for production in RHS:
+                predict_set = self.predict_set(LHS, production)
+                print(LHS, production, predict_set)
+                for terminal in predict_set:
+                    self.ll1_parse_table[LHS][terminal] = rule_counter
 
-        alternation = []    #will contain symbols between each alternation
-        for token in RHS_tokens:
-            if token != "lambda" and token != "$" and token != "|":  #add the token to the cfg's respective set of terminals or non-terminals
-                if token.islower():
-                    cfg.terminals.add(token)
+                rule_counter += 1
+
+
+#creates and returns a CFG object from the given input file
+def parse_input_file():
+    # Read CFG from file
+    file_name = sys.argv[1]
+    cfg = CFG()
+    with open(file_name) as f:
+        current_LHS = ""
+        for line in f:
+            # line = line.strip("\n")
+            line = line.strip()
+
+            tokens = line.split(" ")
+            #check if this line is a production
+            if tokens[1] == "->":
+                current_LHS = tokens[0]
+                RHS_tokens = tokens[2:]
+                cfg.non_terminals.add(current_LHS)
+            else:   #else line starts with alternation
+                RHS_tokens = tokens[1:]
+
+            alternation = []    #will contain symbols between each alternation
+            for token in RHS_tokens:
+                if token != "lambda" and token != "$" and token != "|":  #add the token to the cfg's respective set of terminals or non-terminals
+                    if token.islower():
+                        cfg.terminals.add(token)
+                    else:
+                        cfg.non_terminals.add(token)
+
+                if token == "$":    #set the start symbol in the CFG to the non-terminal with $ in the production
+                    cfg.start_symbol = current_LHS
+                    alternation.append(token)
+                elif token == "|":  #when you reach an alternation, add the last alternation list to the dict and then empty it
+                    cfg.production_rules[current_LHS].append(alternation)
+                    alternation = []
                 else:
-                    cfg.non_terminals.add(token)
+                    alternation.append(token)
 
-            if token == "$":    #set the start symbol in the CFG to the non-terminal with $ in the production
-                cfg.start_symbol = current_LHS
-                alternation.append(token)
-            elif token == "|":  #when you reach an alternation, add the last alternation list to the dict and then empty it
-                cfg.production_rules[current_LHS].append(alternation)
-                alternation = []
-            else:
-                alternation.append(token)
+            cfg.production_rules[current_LHS].append(alternation)   #handles adding the last production to the dict
 
-        cfg.production_rules[current_LHS].append(alternation)   #handles adding the last production to the dict
+        return cfg
 
 
-### print shit
-print(f"Terminals: {', '.join(sorted(list(cfg.terminals)))}")
-print(f"Non-terminals: {', '.join(sorted(list(cfg.non_terminals)))}\n")
+def print_stuff(cfg):
+    print(f"Terminals: {', '.join(sorted(list(cfg.terminals)))}")
+    print(f"Non-terminals: {', '.join(sorted(list(cfg.non_terminals)))}\n")
 
-counter = 1
-for k, v in cfg.production_rules.items():
-    for production in v:
-        print(f"({counter})\t {k} -> {' '.join(production)}")
-        print("Predict", cfg.predict_set(k, production))
-        counter += 1
+    counter = 1
+    for k, v in cfg.production_rules.items():
+        for production in v:
+            print(f"({counter})\t {k} -> {' '.join(production)}")
+            print("Predict", cfg.predict_set(k, production))
+            counter += 1
 
-print(f"\nGrammar Start Symbol or Goal: {cfg.start_symbol}")
-print()
+    print(f"\nGrammar Start Symbol or Goal: {cfg.start_symbol}")
+    print()
 
-print(cfg.follow_set("S")[0])
-print(cfg.follow_set("A")[0])
-print(cfg.follow_set("B")[0])
-print(cfg.follow_set("C")[0])
+    print(cfg.follow_set("S")[0])
+    print(cfg.follow_set("A")[0])
+    print(cfg.follow_set("B")[0])
+    print(cfg.follow_set("C")[0])
 
-print(cfg.test_disjoint())
+    print(cfg.test_disjoint())
+
+    for k,v in cfg.ll1_parse_table.items():
+        print(k, " : ", v)
+
+
+
+def main():
+    cfg = parse_input_file()
+    cfg.create_LL1_parsing_table()
+
+    print_stuff(cfg)
+
+
+
+main()
