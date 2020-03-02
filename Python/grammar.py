@@ -4,6 +4,8 @@ import sys
 from collections import defaultdict
 from pprint import pprint
 
+import parse_tree
+
 
 class CFG:
     def __init__(self):
@@ -247,6 +249,8 @@ def main():
 
     print_stuff(cfg)
 
+    pt = parse_tree.ll_tabular_parsing(parse_tree.TokenStream("../complicated-first.tok"), cfg)
+    print(pt)
 
 
 main()
