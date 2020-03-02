@@ -70,21 +70,31 @@ class CFG:
         if X not in T:
             T.add(X)
 
+            # for each p in P with X on LHS of p
             for lhs, alternations in list(self.production_rules.items()):
-                for rhs in alternations:
-                    indices = (i for i, x in enumerate(rhs) if x == X)
+                if lhs == X:
+                    for rhs in alternations:
 
-                    for index in indices:
-                        # AB is the sequence of grammar symbols with X on
-                        # the LHS of of some production rule P.
-                        AB = rhs[index + 1:]
-                        for p in AB:
-                            if p in self.production_rules.keys():
-                                rules = self.production_rules[p]
+                        # rhs is rhs of p
+                        G, S = self.first_set(rhs, T)
+                        result = result | G
+                        """
+                        indices = (i for i, x in enumerate(rhs) if x == X)
+                        for i in indices:
+                            print("index", i)
 
-                                for rule in rules:
-                                    G, S = self.first_set(rule, T)
-                                    result.update(G)
+                        for index in indices:
+                            # AB is the sequence of grammar symbols with X on
+                            # the LHS of of some production rule P.
+                            AB = rhs[index + 1:]
+                            for p in AB:
+                                if p in self.production_rules.keys():
+                                    rules = self.production_rules[p]
+
+                                    for rule in rules:
+                                        G, S = self.first_set(rule, T)
+                                        result.update(G)
+                        """
 
         if X == "lambda" or self.derives_to_lambda(X):
             G, S = self.first_set(XB[1:], T)
@@ -245,6 +255,7 @@ def print_stuff(cfg):
         print(nt, ":", cfg.follow_set(nt)[0])
 
 
+    # TODO: if C ->*λ, is first(C) {} or is it follow(C)
     # print(cfg.test_disjoint())
     #
     # for k,v in cfg.ll1_parse_table.items():
@@ -258,7 +269,7 @@ def main():
     print_stuff(cfg)
 
     pt = parse_tree.ll_tabular_parsing(parse_tree.TokenStream("../complicated-first.tok"), cfg)
-    print(pt)
+    # print(pt)
 
 
 # main()

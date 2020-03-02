@@ -47,7 +47,7 @@ def ll_tabular_parsing(ts, cfg):
                 return None
             # for now, our "marker" for K is None
             K.append(None)
-            R = p  # this seems problematic because as-is I think R is a number, should be an RHS
+            R = cfg.production_rules[p]
             # this will not work because R is not iterable
             for i in range(len(R), -1, -1):
                 K.append(R[i])
@@ -66,13 +66,3 @@ def ll_tabular_parsing(ts, cfg):
             Cur = Cur.parent
 
     return T.children[0]
-
-
-def main():
-    import grammar
-    ts = TokenStream(sys.argv[0])
-    ll_tabular_parsing(ts, None, None)
-
-
-if __name__ == "__main__":
-    main()
