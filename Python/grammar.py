@@ -15,6 +15,44 @@ class CFG:
         self.start_symbol = ""
         self.ll1_parse_table = {}
 
+    def from_str(data):
+        cfg = CFG()
+        current_LHS = ""
+        for line in data.splitlines():
+            # line = line.strip("\n")
+            line = line.strip()
+
+            tokens = line.split(" ")
+            #check if this line is a production
+            if tokens[1] == "->":
+                current_LHS = tokens[0]
+                RHS_tokens = tokens[2:]
+                cfg.non_terminals.add(current_LHS)
+            else:   #else line starts with alternation
+                RHS_tokens = tokens[1:]
+
+            alternation = []    #will contain symbols between each alternation
+            for token in RHS_tokens:
+                if token != "lambda" and token != "$" and token != "|":  #add the token to the cfg's respective set of terminals or non-terminals
+                    if token.islower():
+                        cfg.terminals.add(token)
+                    else:
+                        cfg.non_terminals.add(token)
+
+                if token == "$":    #set the start symbol in the CFG to the non-terminal with $ in the production
+                    cfg.start_symbol = current_LHS
+                    alternation.append(token)
+                elif token == "|":  #when you reach an alternation, add the last alternation list to the dict and then empty it
+                    cfg.production_rules[current_LHS].append(alternation)
+                    alternation = []
+                else:
+                    alternation.append(token)
+
+            cfg.production_rules[current_LHS].append(alternation)   #handles adding the last production to the dict
+
+        return cfg
+
+
     def contains_terminal(self, production):
         return any(map(lambda e: e in self.terminals or e == self.start_symbol, production))
 
@@ -271,6 +309,7 @@ def main():
     pt = parse_tree.ll_tabular_parsing(parse_tree.TokenStream("../complicated-first.tok"), cfg)
     # print(pt)
 
-
+if __name__ == "__main__":
+    main()
 # main()
 print_stuff(parse_input_file())
