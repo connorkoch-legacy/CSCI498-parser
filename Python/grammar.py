@@ -22,6 +22,9 @@ class CFG:
             # line = line.strip("\n")
             line = line.strip()
 
+            if len(line) is 0:
+                continue
+
             tokens = line.split(" ")
             #check if this line is a production
             if tokens[1] == "->":
@@ -34,10 +37,10 @@ class CFG:
             alternation = []    #will contain symbols between each alternation
             for token in RHS_tokens:
                 if token != "lambda" and token != "$" and token != "|":  #add the token to the cfg's respective set of terminals or non-terminals
-                    if token.islower():
-                        cfg.terminals.add(token)
-                    else:
+                    if token.isupper():
                         cfg.non_terminals.add(token)
+                    else:
+                        cfg.terminals.add(token)
 
                 if token == "$":    #set the start symbol in the CFG to the non-terminal with $ in the production
                     cfg.start_symbol = current_LHS
@@ -52,6 +55,36 @@ class CFG:
 
         return cfg
 
+    def __repr__(self):
+        result = "\n"
+
+        result += f"Terminals: {', '.join(sorted(list(self.terminals)))}\n"
+        result += f"Non-terminals: {', '.join(sorted(list(self.non_terminals)))}\n"
+
+        counter = 1
+        for k, v in sorted(list(self.production_rules.items())):
+            for production in sorted(v):
+                result += f"\n({counter})\t {k} -> {' '.join(production)}\n"
+                result += f"Predict {sorted(list(self.predict_set(k, production)))}"
+                counter += 1
+
+        result += f"\nGrammar Start Symbol or Goal: {self.start_symbol}\n"
+        result += "\n"
+
+        # result += self.follow_set("S\n"[0])
+        # result += self.follow_set("A\n"[0])
+        # result += self.follow_set("B\n"[0])
+        # result += self.follow_set("C\n"[0])
+
+        result += "First sets:\n"
+        for nt in sorted(list(self.non_terminals)):
+            result += f"{nt} : {sorted(list(self.first_set(nt)[0]))}\n"
+
+        result += "Follow sets:\n"
+        for nt in sorted(list(self.non_terminals)):
+            result += f"{nt} : {sorted(list(self.follow_set(nt)[0]))}\n"
+
+        return result
 
     def contains_terminal(self, production):
         return any(map(lambda e: e in self.terminals or e == self.start_symbol, production))
@@ -234,6 +267,9 @@ def parse_input_file():
             # line = line.strip("\n")
             line = line.strip()
 
+            if len(line) is 0:
+                continue
+
             tokens = line.split(" ")
             #check if this line is a production
             if tokens[1] == "->":
@@ -246,10 +282,10 @@ def parse_input_file():
             alternation = []    #will contain symbols between each alternation
             for token in RHS_tokens:
                 if token != "lambda" and token != "$" and token != "|":  #add the token to the cfg's respective set of terminals or non-terminals
-                    if token.islower():
-                        cfg.terminals.add(token)
-                    else:
+                    if token.isupper():
                         cfg.non_terminals.add(token)
+                    else:
+                        cfg.terminals.add(token)
 
                 if token == "$":    #set the start symbol in the CFG to the non-terminal with $ in the production
                     cfg.start_symbol = current_LHS
@@ -312,4 +348,4 @@ def main():
 if __name__ == "__main__":
     main()
 # main()
-print_stuff(parse_input_file())
+# print_stuff(parse_input_file())
