@@ -167,6 +167,21 @@ class CFG:
                                         G, S = self.first_set(rule, T)
                                         result.update(G)
                         """
+                for rhs in alternations:
+                    print(rhs)
+                    indices = (i for i, x in enumerate(rhs) if x == X)
+
+                    for index in indices:
+                        # AB is the sequence of grammar symbols with X on
+                        # the LHS of of some production rule P.
+                        AB = rhs[index + 1:]
+                        for p in AB:
+                            if p in self.production_rules.keys():
+                                rules = self.production_rules[p]
+
+                                for rule in rules:
+                                    G, S = self.first_set(rule, T)
+                                    result.update(G)
 
         if X == "lambda" or self.derives_to_lambda(X):
             G, S = self.first_set(XB[1:], T)
