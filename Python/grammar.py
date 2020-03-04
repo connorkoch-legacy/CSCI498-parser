@@ -35,6 +35,9 @@ class CFG:
             else:   #else line starts with alternation
                 RHS_tokens = tokens[1:]
 
+            if current_LHS not in cfg.production_rules:
+                 cfg.production_rules[current_LHS] = []
+
             alternation = []    #will contain symbols between each alternation
             for token in RHS_tokens:
                 if token != "lambda" and token != "$" and token != "|":  #add the token to the cfg's respective set of terminals or non-terminals
