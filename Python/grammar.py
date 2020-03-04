@@ -2,6 +2,7 @@
 
 import sys
 from collections import defaultdict
+from collections import OrderedDict
 from pprint import pprint
 
 import parse_tree
@@ -9,7 +10,7 @@ import parse_tree
 
 class CFG:
     def __init__(self):
-        self.production_rules = defaultdict(list) #{ LHS -> list of lists }, where inner lists are possible alternations}
+        self.production_rules = OrderedDict() #{ LHS -> list of lists }, where inner lists are possible alternations}
         self.terminals = set()
         self.non_terminals = set()
         self.start_symbol = ""
@@ -278,6 +279,9 @@ def parse_input_file():
                 cfg.non_terminals.add(current_LHS)
             else:   #else line starts with alternation
                 RHS_tokens = tokens[1:]
+
+            if current_LHS not in cfg.production_rules:
+                 cfg.production_rules[current_LHS] = []
 
             alternation = []    #will contain symbols between each alternation
             for token in RHS_tokens:
