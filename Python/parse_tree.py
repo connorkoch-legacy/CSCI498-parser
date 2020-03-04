@@ -30,6 +30,7 @@ class ParseTreeNode:
 
 # Returns None on failure
 def ll_tabular_parsing(ts, cfg):
+    print("\n\n\n")
     LLT = cfg.ll1_parse_table
     P = cfg.production_rules
     T = ParseTreeNode("root", None)
@@ -37,10 +38,18 @@ def ll_tabular_parsing(ts, cfg):
     K = ["S"]
 
     while K:
+        print(K)
         x = K.pop()
         if x in cfg.non_terminals:
             try:
-                p = P[LLT[x][ts.peek()]]
+                print(P)
+                print(LLT)
+                print(ts.peek())
+                print("foo", LLT[x][ts.peek()[0]])
+                # the first time, this is P[1]
+                p = P[LLT[x][ts.peek()[0]]]
+                print(p)
+            # TODO: need to be more clever since P is a defaultdict and cannot possibly have a KE
             except KeyError:
                 # next token may not predict a p in P
                 # FAIL

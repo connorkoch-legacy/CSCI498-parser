@@ -23,7 +23,7 @@ class CFG:
             # line = line.strip("\n")
             line = line.strip()
 
-            if len(line) is 0:
+            if len(line) == 0:
                 continue
 
             tokens = line.split(" ")
@@ -268,7 +268,7 @@ def parse_input_file():
             # line = line.strip("\n")
             line = line.strip()
 
-            if len(line) is 0:
+            if len(line) == 0:
                 continue
 
             tokens = line.split(" ")
@@ -333,7 +333,6 @@ def print_stuff(cfg):
         print(nt, ":", cfg.follow_set(nt)[0])
 
 
-    # TODO: if C ->*λ, is first(C) {} or is it follow(C)
     # print(cfg.test_disjoint())
     #
     # for k,v in cfg.ll1_parse_table.items():
@@ -346,8 +345,8 @@ def main():
 
     print_stuff(cfg)
 
-    pt = parse_tree.ll_tabular_parsing(parse_tree.TokenStream("../complicated-first.tok"), cfg)
-    # print(pt)
+    pt = parse_tree.ll_tabular_parsing(parse_tree.TokenStream(sys.argv[2]), cfg)
+    print(pt)
 
 if __name__ == "__main__":
     main()
