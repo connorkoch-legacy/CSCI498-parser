@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "a57c6476dc5c7cb5276625e31b17158c2533e89c5d12759fe2daa59d603388cc"
+            "sha256": "5d60c5c10f512e48845ecc2c127f0dfcc425d0a9e93b326731819af4e56057cd"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -43,8 +43,7 @@
         "bleach": {
             "hashes": [
                 "sha256:213336e49e102af26d9cde77dd2d0397afabc5a6bf2fed985dc35b5d1e285a16",
-                "sha256:3fdf7f77adcf649c9911387df51254b813185e32b2c6619f690b593a617e19fa",
-                "sha256:4ca3ec10244c9f11ec129b054912e8bc9ecefc2e0b6bf0dab273f0e72cf381e4"
+                "sha256:3fdf7f77adcf649c9911387df51254b813185e32b2c6619f690b593a617e19fa"
             ],
             "index": "pypi",
             "version": "==3.1.0"
@@ -180,7 +179,6 @@
                 "sha256:b97607a1a18a5100839aec1dc26a1ea17ee0d93b20b0f008d80a5a050afb200b"
             ],
             "index": "pypi",
-            "markers": "python_version < '3.8'",
             "version": "==1.5.0"
         },
         "ipykernel": {
@@ -519,7 +517,6 @@
                 "sha256:fc65a43959d153d0114afe13997d439c22823a27cefceb5ff35c2178c6784c0c"
             ],
             "index": "pypi",
-            "markers": "sys_platform != 'win32'",
             "version": "==4.8.0"
         },
         "pickleshare": {
@@ -559,7 +556,6 @@
                 "sha256:d7cc528d76e76342423ca640335bd3633420dc1366f258cb31d05e865ef5ca1f"
             ],
             "index": "pypi",
-            "markers": "os_name != 'nt'",
             "version": "==0.6.0"
         },
         "py": {
@@ -638,10 +634,11 @@
         },
         "pyxdg": {
             "hashes": [
-                "sha256:81e883e0b9517d624e8b0499eb267b82a815c0b7146d5269f364988ae031279d"
+                "sha256:1948ff8e2db02156c0cccd2529b43c0cff56ebaa71f5f021bbd755bc1419190e",
+                "sha256:fe2928d3f532ed32b39c32a482b54136fe766d19936afc96c8f00645f9da1a06"
             ],
             "index": "pypi",
-            "version": "==0.25"
+            "version": "==0.26"
         },
         "pyzmq": {
             "hashes": [
