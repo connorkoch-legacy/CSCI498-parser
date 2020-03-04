@@ -100,6 +100,12 @@ public class CFG {
 		System.out.println();
 	}
 
+	public void generateFollowSet() {
+		for (AlphabetCharacter l : productions.keySet()) {
+			Set<AlphabetCharacter> firstSetForL = generateFollowSet();
+		}
+	}
+
 	/**
 	 * Gets the follow set
 	 * DO NOT IMPLEMENT
@@ -107,8 +113,9 @@ public class CFG {
 	public Set<AlphabetCharacter> getFollowSet(AlphabetCharacter c) {
 		if (c.followSet != null)
 			return c.followSet;
-		Set<AlphabetCharacter> followSet = followSet(c, new HashSet<>());
-		return followSet;
+//		Set<AlphabetCharacter> followSet = followSet(c, new HashSet<>());
+//		return followSet;
+		return new HashSet<>();
 	}
 
 	/**
@@ -166,93 +173,88 @@ public class CFG {
 		return false;
 	}
 
-	public Set<AlphabetCharacter> deriveFirstSet(ArrayList<AlphabetCharacter> xBeta, Set<AlphabetCharacter> T){ //xBeta is a valid sequence of grammar elements and T is an empty set
-		ArrayList<AlphabetCharacter> x = new ArrayList<AlphaCharacter>();
-		ArrayList<AlphabetCharacter> beta = new ArrayList<AlphaCharacter>();
-		x.add(xBeta.at(0)); //x is first symbol in sequence of grammar elements
+	public Set<AlphabetCharacter> deriveFirstSet(ArrayList<AlphabetCharacter> xBeta, Set<AlphabetCharacter> visitedSet) { //xBeta is a valid sequence of grammar elements and visitedSet is an empty set
+        AlphabetCharacter x = xBeta.get(0); //x is first symbol in sequence of grammar elements
+//		ArrayList<AlphabetCharacter> beta = new ArrayList<>();
+//
+//		for(int i = 1; i < xBeta.size()-1; i++){
+//			beta.add(xBeta.get(i)); //beta is the rest of the symbols in sequence of grammar elements
+//		}
+        xBeta.remove(0);
 
-		for(int i = 1; i < xBeta.size()-1; i++){
-			beta.add(xBeta.at(i)); //beta is the rest of the symbols in sequence of grammar elements
-		}
+        if (!x.isNonTerminal()) { //if x is a terminal then return x
+            Set<AlphabetCharacter> xSet = new HashSet<>();
+            xSet.add(x);
+            return xSet;
+        }
 
-		if(!x.isNonTerminal()){ //if x is a terminal then return x
-			Set<AlphabetCharacter> xSet = Set<AlphabetCharacter>(x);
-			return xSet;
-		}
+        Set<AlphabetCharacter> F = new HashSet<>();
 
-		Set<AlphabetCharacter> F = new Set<AlphabetCharacter>();
-		Pair<HashSet<AlphabetCharacter>, HashSet<AlphabetCharacter>> GS;
+        if (!visitedSet.contains(x)) { //if x is not in set visitedSet
+            visitedSet.add(x);
+            for (ProductionRule p : productions.get(x)) {
+                ArrayList<AlphabetCharacter> rightHandSide = p.rhs; //let rightHandSide be the RHS of p
+//                GS = deriveFirstSet(rightHandSide, visitedSet);
+                F.addAll(deriveFirstSet(rightHandSide, visitedSet));
+            }
+        }
 
-		if(!T.contains(x)){ //if x is not in set T
-			T.add(x);
-			for(ProductionRule p : productions.get(x)){
-				ArrayList<AlphabetCharacter> R = new ArrayList<AlphabetCharacter>();
-				R = p.rhs; //let R be the RHS of p
-				GS = deriveFirstSet(R,T);
-				G = GS.getKey();
-				F.addAll(G);
+        if (derivesToLambda(x, new Stack<>())) {
+//            GS = deriveFirstSet(beta, visitedSet);
+//            F.addAll(GS);
+			F.addAll(deriveFirstSet(xBeta, visitedSet));
+        }
 
-			}
-		}
+        return F;
+    }
 
-		if(derivesToLambda(x,new Stack<>())){
-			GS = deriveFirstSet(beta, T);
-			G = GS.getKey();
-			F.addAll(G);
-		}
-
-		return F;
-
-
-	}
-
-
-	public void followSet(AlphabetCharacter A, Set<AlphabetCharacter> T){	//A is a nonterminal, T is an empty set
-		if(T.contains(A))
-			return new Pair<AlphabetCharacter, Set<AlphabetCharacter>>(new HashSet<AlphabetCharacter>(), T);
-
-		T.add(A);
-		HashSet<AlphabetCharacter> F = new HashSet<>();
-
-		for(Map.Entry<AlphabetCharacter, ArrayList<ProductionRule>> p : this.productions.entrySet()){
-			ArrayList<ProductionRule> RHS = new ArayList<>();
-			for(int i = 0; i < p.getValue().size(); i++){
-				if(RHS[i].equals(A)){	// for every symbol on the RHS that equals A
-					ArrayList<ProductionRule> XB;
-					if(i == RHS.size()-1)
-						XB = null;
-					else
-						XB = RHS.subList(i+1, RHS.size());
-
-					if(XB != null){
-						Pair<HashSet<AlphabetCharacter>, HashSet<AlphabetCharacter>> GI
-							= deriveFirstSet(new Pair<ArrayList<ProductionRule>, HashSet<ProductionRule>>(XB, new HashSet<ProductionRule>()));
-
-						G = GI.getKey();
-						F.addAll(G);
-
-					}
-
-					HashSet<ProductionRule> XBset = new HashSet<>(XB);
-					XBset.retainAll(this.terminals);
-
-					boolean allXBderivesToLambda = true;
-					for(AlphabetCharacter C : XB){
-						if(!derivesToLambda(C, new Stack<>()))
-							allXBderivesToLambda = false;
-					}
-
-					if(XB == null || (XBset.empty() && allXBderivesToLambda)){
-						Pair<HashSet<AlphabetCharacter>, HashSet<AlphabetCharacter>> GS = followSet(p.getKey(), T);
-
-						G = GS.getKey();
-						F.addAll(G);
-					}
-				}
-			}
-		}
-		return new Pair<HashSet<AlphabetCharacter>, HashSet<AlphabetCharacter>>(F, T);
-	}
+//	public void followSet(AlphabetCharacter A, Set<AlphabetCharacter> T){	//A is a nonterminal, T is an empty set
+//		if(T.contains(A))
+//			return new Pair<AlphabetCharacter, Set<AlphabetCharacter>>(new HashSet<AlphabetCharacter>(), T);
+//
+//		T.add(A);
+//		HashSet<AlphabetCharacter> F = new HashSet<>();
+//
+//		for(Map.Entry<AlphabetCharacter, ArrayList<ProductionRule>> p : this.productions.entrySet()){
+//			ArrayList<ProductionRule> RHS = new ArrayList<>();
+//
+//			for(int i = 0; i < p.getValue().size(); i++){
+//				if(RHS.get(i).equals(A)){	// for every symbol on the RHS that equals A
+//					ArrayList<ProductionRule> XB;
+//					if(i == RHS.size()-1)
+//						XB = null;
+//					else
+//						XB = RHS.subList(i+1, RHS.size());
+//
+//					if(XB != null){
+//						Pair<HashSet<AlphabetCharacter>, HashSet<AlphabetCharacter>> GI
+//							= deriveFirstSet(new Pair<ArrayList<ProductionRule>, HashSet<ProductionRule>>(XB, new HashSet<ProductionRule>()));
+//
+//						G = GI.getKey();
+//						F.addAll(G);
+//
+//					}
+//
+//					HashSet<ProductionRule> XBset = new HashSet<>(XB);
+//					XBset.retainAll(this.terminals);
+//
+//					boolean allXBderivesToLambda = true;
+//					for(AlphabetCharacter C : XB){
+//						if(!derivesToLambda(C, new Stack<>()))
+//							allXBderivesToLambda = false;
+//					}
+//
+//					if(XB == null || (XBset.empty() && allXBderivesToLambda)){
+//						Pair<HashSet<AlphabetCharacter>, HashSet<AlphabetCharacter>> GS = followSet(p.getKey(), T);
+//
+//						G = GS.getKey();
+//						F.addAll(G);
+//					}
+//				}
+//			}
+//		}
+//		return new Pair<HashSet<AlphabetCharacter>, HashSet<AlphabetCharacter>>(F, T);
+//	}
 
 
 	@Override
