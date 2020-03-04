@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "a57c6476dc5c7cb5276625e31b17158c2533e89c5d12759fe2daa59d603388cc"
+            "sha256": "c37f20f4f594c25de7b0ab4bfd2341571fa3762036a15912ac9a0fa99ec0d89c"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -42,12 +42,11 @@
         },
         "bleach": {
             "hashes": [
-                "sha256:213336e49e102af26d9cde77dd2d0397afabc5a6bf2fed985dc35b5d1e285a16",
-                "sha256:3fdf7f77adcf649c9911387df51254b813185e32b2c6619f690b593a617e19fa",
-                "sha256:4ca3ec10244c9f11ec129b054912e8bc9ecefc2e0b6bf0dab273f0e72cf381e4"
+                "sha256:44f69771e2ac81ff30d929d485b7f9919f3ad6d019b6b20c74f3b8687c3f70df",
+                "sha256:aa8b870d0f46965bac2c073a93444636b0e1ca74e9777e34f03dd494b8a59d48"
             ],
             "index": "pypi",
-            "version": "==3.1.0"
+            "version": "==3.1.1"
         },
         "cffi": {
             "hashes": [
@@ -180,7 +179,6 @@
                 "sha256:b97607a1a18a5100839aec1dc26a1ea17ee0d93b20b0f008d80a5a050afb200b"
             ],
             "index": "pypi",
-            "markers": "python_version < '3.8'",
             "version": "==1.5.0"
         },
         "ipykernel": {
@@ -519,7 +517,6 @@
                 "sha256:fc65a43959d153d0114afe13997d439c22823a27cefceb5ff35c2178c6784c0c"
             ],
             "index": "pypi",
-            "markers": "sys_platform != 'win32'",
             "version": "==4.8.0"
         },
         "pickleshare": {
@@ -559,7 +556,6 @@
                 "sha256:d7cc528d76e76342423ca640335bd3633420dc1366f258cb31d05e865ef5ca1f"
             ],
             "index": "pypi",
-            "markers": "os_name != 'nt'",
             "version": "==0.6.0"
         },
         "py": {
