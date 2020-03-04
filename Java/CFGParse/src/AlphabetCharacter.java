@@ -2,7 +2,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.HashSet;
 
-public class AlphabetCharacter {
+public class AlphabetCharacter implements Comparable<AlphabetCharacter> {
 	String label;
 	public Set<AlphabetCharacter> firstSet = null;
 	public Set<AlphabetCharacter> followSet = null;
@@ -53,5 +53,10 @@ public class AlphabetCharacter {
 		return Objects.equals(label, that.label) &&
 				Objects.equals(firstSet, that.firstSet) &&
 				Objects.equals(followSet, that.followSet);
+	}
+
+	@Override
+	public int compareTo(AlphabetCharacter o) {
+		return this.label.compareTo(o.label); // compare based on label
 	}
 }

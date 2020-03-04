@@ -1,4 +1,3 @@
-
 public class Main {
 	public static void main(String[] args) throws Exception {
 		// IMPORTANT: the filename for the CFG is taken as a command-line argument
@@ -6,5 +5,7 @@ public class Main {
 		System.out.println(grammar);
 
 		grammar.generateDerivesToLambdaSet();
+		grammar.printAllFirstSets();
+//		Set<AlphabetCharacter> first = grammar.deriveFirstSet()
 	}
 }
