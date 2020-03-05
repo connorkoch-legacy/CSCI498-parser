@@ -38,27 +38,28 @@ def ll_tabular_parsing(ts, cfg):
     K = ["S"]
 
     while K:
-        print(K)
         x = K.pop()
+        print("x is", x)
         if x in cfg.non_terminals:
             try:
-                print(P)
-                print(LLT)
-                print(ts.peek())
-                print("foo", LLT[x][ts.peek()[0]])
+                print("P is", P)
+                print("P.items() is", list(P.items()))
+                print("LLT is", LLT)
+                print("ts.peek() is", ts.peek())
+                print("index is", LLT[x][ts.peek()[0]])
                 # the first time, this is P[1]
-                p = P[LLT[x][ts.peek()[0]]]
-                print(p)
-            # TODO: need to be more clever since P is a defaultdict and cannot possibly have a KE
+                p = list(P.items())[LLT[x][ts.peek()[0]]]
+                print("p is", p)
             except KeyError:
+                print("KeyError")
                 # next token may not predict a p in P
                 # FAIL
                 return None
             # for now, our "marker" for K is None
             K.append(None)
-            R = cfg.production_rules[p]
-            # this will not work because R is not iterable
-            for i in range(len(R), -1, -1):
+            R = [p[0]]
+            print("R is", R)
+            for i in range(len(R) - 1, -1, -1):
                 K.append(R[i])
             Cur.children.append(ParseTreeNode(x, Cur))
             Cur = Cur.children[-1]

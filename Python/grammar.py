@@ -288,7 +288,9 @@ def parse_input_file():
             if len(line) == 0:
                 continue
 
+            print("LINE", line)
             tokens = line.split(" ")
+            tokens = [t for t in tokens if t]  # fix bug when splitting on multiple spaces
             #check if this line is a production
             if tokens[1] == "->":
                 current_LHS = tokens[0]
