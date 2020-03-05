@@ -171,7 +171,7 @@ class CFG:
                                         result.update(G)
                         """
                 for rhs in alternations:
-                    print(rhs)
+                    # print(rhs)
                     indices = (i for i, x in enumerate(rhs) if x == X)
 
                     for index in indices:
