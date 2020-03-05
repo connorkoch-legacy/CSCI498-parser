@@ -8,6 +8,10 @@ public class ProductionRule {
         this.rhs = new ArrayList<>();
     }
 
+    public ProductionRule(ArrayList<AlphabetCharacter> rhs) {
+        this.rhs = rhs;
+    }
+
     public void addCharacterToRHS(AlphabetCharacter c) {
         rhs.add(c);
     }
@@ -27,6 +31,20 @@ public class ProductionRule {
     public boolean containsTerminal() {
         for (AlphabetCharacter c : rhs) {
             if (c.isNonTerminal() == false) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Whether or not this production rule contains, on it's RHS, an element of Σ or $
+     * @return above
+     */
+    public boolean containsTerminalOr$() {
+        for (AlphabetCharacter c : rhs) {
+            if (c.isEOF() || c.isTerminal()) {
                 return true;
             }
         }

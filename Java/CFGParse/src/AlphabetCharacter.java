@@ -1,17 +1,15 @@
 import java.util.Objects;
-import java.util.Set;
-import java.util.HashSet;
 
 public class AlphabetCharacter implements Comparable<AlphabetCharacter> {
 	String label;
-	public Set<AlphabetCharacter> firstSet = null;
-	public Set<AlphabetCharacter> followSet = null;
+
 	
 	public AlphabetCharacter(String label) {
 		this.label = label;
+	}
 
-		firstSet = new HashSet<>();
-		followSet = new HashSet<>();
+	public AlphabetCharacter(AlphabetCharacter toBeCloned) {
+		this(toBeCloned.label);
 	}
 
 	public static boolean isTerminalToken(String token) {
@@ -19,8 +17,12 @@ public class AlphabetCharacter implements Comparable<AlphabetCharacter> {
 		return token.toLowerCase().equals(token);
 	}
 
-	public boolean equals(String a) {
-		return label.equals(a);
+	/**
+	 * Whether this is strictly a *terminal* character (lowercase)
+	 * @return
+	 */
+	public boolean isTerminal() {
+		return isTerminalToken(this.label);
 	}
 
 	public boolean isNonTerminal() {
@@ -33,6 +35,10 @@ public class AlphabetCharacter implements Comparable<AlphabetCharacter> {
 	
 	public boolean isEOF() {
 		return "$".equals(label);
+	}
+
+	public boolean equals(String a) {
+		return label.equals(a);
 	}
 
 	@Override
@@ -50,9 +56,7 @@ public class AlphabetCharacter implements Comparable<AlphabetCharacter> {
 		if (this == o) return true;
 		if (o == null || getClass() != o.getClass()) return false;
 		AlphabetCharacter that = (AlphabetCharacter) o;
-		return Objects.equals(label, that.label) &&
-				Objects.equals(firstSet, that.firstSet) &&
-				Objects.equals(followSet, that.followSet);
+		return Objects.equals(label, that.label);
 	}
 
 	@Override

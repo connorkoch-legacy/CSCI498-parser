@@ -6,6 +6,7 @@ public class Main {
 
 		grammar.generateDerivesToLambdaSet();
 		grammar.printAllFirstSets();
+		grammar.printAllFollowSets();
 //		Set<AlphabetCharacter> first = grammar.deriveFirstSet()
 	}
 }
