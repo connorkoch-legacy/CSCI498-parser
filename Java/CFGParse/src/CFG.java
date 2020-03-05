@@ -92,12 +92,6 @@ public class CFG {
 				derivesToLambdaSet.add(l);
 			}
 		}
-
-		System.out.print("Derives to Lambda: ");
-		for (AlphabetCharacter l : derivesToLambdaSet) {
-			System.out.print(l + " ");
-		}
-		System.out.println();
 	}
 
 	/**
@@ -116,6 +110,17 @@ public class CFG {
 		}
 
 		return firstSet;
+	}
+
+	/**
+	 * Useful for debugging. Prints the derivesToLambda set
+	 */
+	public void printDerivesToLambda() {
+		System.out.print("Derives to Lambda: ");
+		for (AlphabetCharacter l : derivesToLambdaSet) {
+			System.out.print(l + " ");
+		}
+		System.out.println();
 	}
 
 	/**
@@ -139,6 +144,9 @@ public class CFG {
 		System.out.println();
 	}
 
+	/**
+	 * Derives the followSet of every non-terminal and prints the result. Useful for debugging
+	 */
 	public void printAllFollowSets() {
 		for (AlphabetCharacter l : productions.keySet()) {
 			StringBuilder result = new StringBuilder("Follow(" + l + ") = {");
@@ -157,17 +165,11 @@ public class CFG {
 		}
 	}
 
-//	public void generateFollowSet() {
-//		for (AlphabetCharacter l : productions.keySet()) {
-//			Set<AlphabetCharacter> firstSetForL = generateFollowSet();
-//		}
-//	}
-
 	/**
 	 * Implements the derivesToLambda procedure given in Keith's pseudocode
 	 * @param l - AlphabetCharacter asked about
 	 * @param charStack - An empty stack
-	 * @return
+	 * @return yes or no
 	 */
 	public boolean derivesToLambda(AlphabetCharacter l, Stack<Pair<ProductionRule, AlphabetCharacter>> charStack) {
 		for (ProductionRule p : productions.get(l)) {
@@ -208,7 +210,7 @@ public class CFG {
 	 * 	To find the firstSet of a non-terminal, call this function every production rule of said character
 	 * @param xBeta - the RHS of a production rule.
 	 * @param visitedSet - just pass an empty set on first call. This is how we track what we've visited in this recursive function
-	 * @return
+	 * @return The first set of this xBeta
 	 */
 	private Set<AlphabetCharacter> deriveFirstSetOfProductionRule(ArrayList<AlphabetCharacter> xBeta, Set<AlphabetCharacter> visitedSet) {
 		//xBeta is a valid sequence of grammar elements and visitedSet is an empty set
@@ -255,11 +257,11 @@ public class CFG {
 
 	/**
 	 * Derives the followSet of a nonterminal A
-	 * @param A
-	 * @param visitedSet
-	 * @return
+	 * @param A - a nonterminal
+	 * @param visitedSet - initially an empty set.
+	 * @return the followSet of nonterminal A
 	 */
-	public Set<AlphabetCharacter> deriveFollowSetOfNonTerminal(AlphabetCharacter A, Set<AlphabetCharacter> visitedSet) {    //A is a nonterminal, visitedSet is an empty set
+	public Set<AlphabetCharacter> deriveFollowSetOfNonTerminal(AlphabetCharacter A, Set<AlphabetCharacter> visitedSet) {
 		if (visitedSet.contains(A)) {
 			return new TreeSet<>();
 		}
@@ -378,12 +380,4 @@ public class CFG {
 
 		return out.toString();
 	}
-
-
-
-
-
-
-
-
 }
