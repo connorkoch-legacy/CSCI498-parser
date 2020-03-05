@@ -3,13 +3,16 @@ import java.io.File;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-
+/**
+ * Represents a CFG to be used in an LL(1) parser.
+ */
 public class CFG {
-	private Set<AlphabetCharacter> nonterminals = new HashSet<>();
+	// These sets are filled after the constructor is called
+	private Set<AlphabetCharacter> nonTerminals = new HashSet<>();
 	private Set<AlphabetCharacter> terminals = new HashSet<>();
 	private Set<AlphabetCharacter> derivesToLambdaSet = new HashSet<>();
 
-	// nonterminal -> list[sequence of alphabet chars]
+	// nonterminal -> list[production rules]
 	private Map<AlphabetCharacter, ArrayList<ProductionRule>> productions = new HashMap<>();
 	private Map<AlphabetCharacter, ProductionRule> startingRule = new HashMap<>();
 
@@ -47,7 +50,7 @@ public class CFG {
 
 			// Treat the string "lambda" as 1 character.
 			if (m.group("RHS").equals("lambda")) {
-				AlphabetCharacter c = new AlphabetCharacter(m.group("RHS"));
+				AlphabetCharacter c = new AlphabetCharacter("lambda");
 				currentRHS.addCharacterToRHS(c);
 			} else {
 				// Add all characters on the rightSideString to the appropriate set and to production object
@@ -59,7 +62,7 @@ public class CFG {
 					AlphabetCharacter c = new AlphabetCharacter(token);
 
 					if (c.isNonTerminal()) {
-						nonterminals.add(c);
+						nonTerminals.add(c);
 					}
 					else if (!c.isEOF() && !c.isLambda()){
 						terminals.add(c);
@@ -81,18 +84,15 @@ public class CFG {
 
 			productions.get(currentLHS).add(currentRHS);
 		}
+
+		// Generate the derivesToLambda set
+		generateDerivesToLambdaSet();
 	}
 
 	/**
-	 * Calls derivesToLambda? on all non-terminals
+	 * Useful for debugging. Prints the derivesToLambda set
 	 */
-	public void generateDerivesToLambdaSet() {
-		for (AlphabetCharacter l : productions.keySet()) {
-			if (this.derivesToLambda(l, new Stack<>())) {
-				derivesToLambdaSet.add(l);
-			}
-		}
-
+	public void printDerivesToLambda() {
 		System.out.print("Derives to Lambda: ");
 		for (AlphabetCharacter l : derivesToLambdaSet) {
 			System.out.print(l + " ");
@@ -101,28 +101,73 @@ public class CFG {
 	}
 
 	/**
-	 * Gets the follow set
-	 * DO NOT IMPLEMENT
+	 * Prints the first set of every LHS. Good for debugging.
 	 */
-	public Set<AlphabetCharacter> getFollowSet(AlphabetCharacter c) {
-		if (c.followSet != null)
-			return c.followSet;
-		Set<AlphabetCharacter> followSet = followSet(c, new HashSet<>());
-		return followSet;
+	public void printAllFirstSets() {
+		for (AlphabetCharacter l : productions.keySet()) {
+			StringBuilder result = new StringBuilder("First(" + l + ") = {");
+			Set<AlphabetCharacter> firstSet = firstSetOf(l);
+			for (AlphabetCharacter c : firstSet) {
+				result.append(c).append(", ");
+			}
+
+			// Remove the trailing ", " at the end of the set
+			result.delete(result.length() - 2, result.length());
+			result.append("}");
+
+			System.out.println(result);
+		}
+
+		System.out.println();
 	}
 
 	/**
-	 * Gets the first set
-	 * DO NOT IMPLEMENT
+	 * Derives the followSet of every non-terminal and prints the result. Useful for debugging
 	 */
-	public Set<AlphabetCharacter> getFirstSet(AlphabetCharacter c) {
-		if (c.firstSet != null)
-			return c.firstSet;
-		Set<AlphabetCharacter> firstSet = new HashSet<>();
-		if (!c.isNonTerminal()) {
-			firstSet.add(c);
-			return firstSet;
+	public void printAllFollowSets() {
+		for (AlphabetCharacter l : productions.keySet()) {
+			StringBuilder result = new StringBuilder("Follow(" + l + ") = {");
+			Set<AlphabetCharacter> followSet = deriveFollowSetOfNonTerminal(l, new HashSet<>());
+			for (AlphabetCharacter c : followSet) {
+				result.append(c).append(", ");
+			}
+
+			// Remove the trailing ", " at the end of the set if it's there
+			if (!followSet.isEmpty()) {
+				result.delete(result.length() - 2, result.length());
+			}
+			result.append("}");
+
+			System.out.println(result);
 		}
+	}
+
+	/**
+	 * Calls derivesToLambda? on all non-terminals
+	 */
+	private void generateDerivesToLambdaSet() {
+		for (AlphabetCharacter l : productions.keySet()) {
+			if (this.derivesToLambda(l, new Stack<>())) {
+				derivesToLambdaSet.add(l);
+			}
+		}
+	}
+
+	/**
+	 * Creates the first set of AlphabetCharacter l by calling deriveFirstSet() on all production rules
+	 * @param l - Alphabet character to find the firstSet of
+	 * @return the resulting set
+	 */
+	private Set<AlphabetCharacter> firstSetOf(AlphabetCharacter l) {
+		if (!productions.containsKey(l)) {
+			return new TreeSet<>();
+		}
+
+		Set<AlphabetCharacter> firstSet = new TreeSet<>();
+		for (ProductionRule rhs : productions.get(l)) {
+			firstSet.addAll(deriveFirstSetOfProductionRule(rhs.rhs, new TreeSet<>()));
+		}
+
 		return firstSet;
 	}
 
@@ -130,9 +175,9 @@ public class CFG {
 	 * Implements the derivesToLambda procedure given in Keith's pseudocode
 	 * @param l - AlphabetCharacter asked about
 	 * @param charStack - An empty stack
-	 * @return
+	 * @return yes or no
 	 */
-	public boolean derivesToLambda(AlphabetCharacter l, Stack<Pair<ProductionRule, AlphabetCharacter>> charStack) {
+	private boolean derivesToLambda(AlphabetCharacter l, Stack<Pair<ProductionRule, AlphabetCharacter>> charStack) {
 		for (ProductionRule p : productions.get(l)) {
 			if (p.isLambdaProduction()) {
 				return true;
@@ -166,94 +211,128 @@ public class CFG {
 		return false;
 	}
 
-	public Set<AlphabetCharacter> deriveFirstSet(ArrayList<AlphabetCharacter> xBeta, Set<AlphabetCharacter> T){ //xBeta is a valid sequence of grammar elements and T is an empty set
-		ArrayList<AlphabetCharacter> x = new ArrayList<AlphaCharacter>();
-		ArrayList<AlphabetCharacter> beta = new ArrayList<AlphaCharacter>();
-		x.add(xBeta.at(0)); //x is first symbol in sequence of grammar elements
-
-		for(int i = 1; i < xBeta.size()-1; i++){
-			beta.add(xBeta.at(i)); //beta is the rest of the symbols in sequence of grammar elements
+	/**
+	 * Implements deriveFirstSet() of his follow code.
+	 * 	To find the firstSet of a non-terminal, call this function every production rule of said character
+	 * @param xBeta - the RHS of a production rule.
+	 * @param visitedSet - just pass an empty set on first call. This is how we track what we've visited in this recursive function
+	 * @return The first set of this xBeta
+	 */
+	private Set<AlphabetCharacter> deriveFirstSetOfProductionRule(ArrayList<AlphabetCharacter> xBeta, Set<AlphabetCharacter> visitedSet) {
+		//xBeta is a valid sequence of grammar elements and visitedSet is an empty set
+		// If xBeta is empty, return an empty set
+		if (xBeta.isEmpty()) {
+			return new TreeSet<>();
 		}
 
-		if(!x.isNonTerminal()){ //if x is a terminal then return x
-			Set<AlphabetCharacter> xSet = Set<AlphabetCharacter>(x);
-			return xSet;
+		AlphabetCharacter x = xBeta.get(0); // x is first symbol in sequence of grammar elements
+
+		// Deep-copy xBeta to beta, so that we don't change the original ArrayList passed in.
+		ArrayList<AlphabetCharacter> beta = new ArrayList<>(xBeta.size());
+		for (AlphabetCharacter gamma : xBeta) {
+			beta.add(new AlphabetCharacter(gamma.label));
 		}
+        beta.remove(0);
 
-		Set<AlphabetCharacter> F = new Set<AlphabetCharacter>();
-		Pair<HashSet<AlphabetCharacter>, HashSet<AlphabetCharacter>> GS;
+        if (!x.isNonTerminal()) { //if x is a terminal then return x
+            Set<AlphabetCharacter> xSet = new TreeSet<>();
 
-		if(!T.contains(x)){ //if x is not in set T
-			T.add(x);
-			for(ProductionRule p : productions.get(x)){
-				ArrayList<AlphabetCharacter> R = new ArrayList<AlphabetCharacter>();
-				R = p.rhs; //let R be the RHS of p
-				GS = deriveFirstSet(R,T);
-				G = GS.getKey();
-				F.addAll(G);
-
+            // Only add to set if *not* lambda
+            if (!x.isLambda()) {
+				xSet.add(x);
 			}
+            return xSet;
+        }
+
+        Set<AlphabetCharacter> F = new TreeSet<>();
+
+        if (!visitedSet.contains(x)) { //if x is not in set visitedSet
+            visitedSet.add(x);
+            for (ProductionRule p : productions.get(x)) {
+                ArrayList<AlphabetCharacter> rightHandSide = p.rhs; //let rightHandSide be the RHS of p
+                F.addAll(deriveFirstSetOfProductionRule(rightHandSide, visitedSet));
+            }
+        }
+
+        if (derivesToLambda(x, new Stack<>())) {
+			F.addAll(deriveFirstSetOfProductionRule(beta, visitedSet));
+        }
+
+        return F;
+    }
+
+	/**
+	 * Derives the followSet of a nonterminal A
+	 * @param A - a nonterminal
+	 * @param visitedSet - initially an empty set.
+	 * @return the followSet of nonterminal A
+	 */
+	private Set<AlphabetCharacter> deriveFollowSetOfNonTerminal(AlphabetCharacter A, Set<AlphabetCharacter> visitedSet) {
+		if (visitedSet.contains(A)) {
+			return new TreeSet<>();
 		}
 
-		if(derivesToLambda(x,new Stack<>())){
-			GS = deriveFirstSet(beta, T);
-			G = GS.getKey();
-			F.addAll(G);
-		}
+		visitedSet.add(A);
+		Set<AlphabetCharacter> resultingSet = new TreeSet<>();
 
-		return F;
+		// for each ProductionRule *p* with A on RHS
+		for (Map.Entry<AlphabetCharacter, ArrayList<ProductionRule>> entry : productions.entrySet()) {
+			ArrayList<ProductionRule> rhs = entry.getValue();
 
+			for (ProductionRule p : rhs) {
+				if (!p.rhs.contains(A)) {
+					continue;
+				}
 
-	}
-
-
-	public void followSet(AlphabetCharacter A, Set<AlphabetCharacter> T){	//A is a nonterminal, T is an empty set
-		if(T.contains(A))
-			return new Pair<AlphabetCharacter, Set<AlphabetCharacter>>(new HashSet<AlphabetCharacter>(), T);
-
-		T.add(A);
-		HashSet<AlphabetCharacter> F = new HashSet<>();
-
-		for(Map.Entry<AlphabetCharacter, ArrayList<ProductionRule>> p : this.productions.entrySet()){
-			ArrayList<ProductionRule> RHS = new ArayList<>();
-			for(int i = 0; i < p.getValue().size(); i++){
-				if(RHS[i].equals(A)){	// for every symbol on the RHS that equals A
-					ArrayList<ProductionRule> XB;
-					if(i == RHS.size()-1)
-						XB = null;
-					else
-						XB = RHS.subList(i+1, RHS.size());
-
-					if(XB != null){
-						Pair<HashSet<AlphabetCharacter>, HashSet<AlphabetCharacter>> GI
-							= deriveFirstSet(new Pair<ArrayList<ProductionRule>, HashSet<ProductionRule>>(XB, new HashSet<ProductionRule>()));
-
-						G = GI.getKey();
-						F.addAll(G);
-
+				// for each instance of A on rhs of p
+				for (int i = 0; i < p.rhs.size(); i++) {
+					AlphabetCharacter c = p.rhs.get(i);
+					if (!c.equals(A)) {
+						continue;
 					}
 
-					HashSet<ProductionRule> XBset = new HashSet<>(XB);
-					XBset.retainAll(this.terminals);
-
-					boolean allXBderivesToLambda = true;
-					for(AlphabetCharacter C : XB){
-						if(!derivesToLambda(C, new Stack<>()))
-							allXBderivesToLambda = false;
+					// Deep copy over to xBeta everything to the right of this instance of A
+					ArrayList<AlphabetCharacter> xBeta = new ArrayList<>();
+					for (int j = i + 1; j < p.rhs.size(); j++) {
+						xBeta.add(new AlphabetCharacter(p.rhs.get(j)));
 					}
 
-					if(XB == null || (XBset.empty() && allXBderivesToLambda)){
-						Pair<HashSet<AlphabetCharacter>, HashSet<AlphabetCharacter>> GS = followSet(p.getKey(), T);
+					if (!xBeta.isEmpty()) {
+						resultingSet.addAll(deriveFirstSetOfProductionRule(xBeta, new HashSet<>()));
+					}
 
-						G = GS.getKey();
-						F.addAll(G);
+					ProductionRule temp = new ProductionRule(xBeta);
+					if (xBeta.isEmpty() || (!temp.containsTerminalOr$() && entireRuleDerivesToLambda(temp))) {
+						resultingSet.addAll(deriveFollowSetOfNonTerminal(entry.getKey(), visitedSet));
 					}
 				}
 			}
 		}
-		return new Pair<HashSet<AlphabetCharacter>, HashSet<AlphabetCharacter>>(F, T);
+
+		return resultingSet;
 	}
 
+	/**
+	 * Checks if the entire rule can become lambda
+	 * 	I don't like this, as I think this should be in ProductionRule (and this needlessly entwines the two classes)
+	 * @param p The production rule in question
+	 * @return result
+	 */
+	private boolean entireRuleDerivesToLambda(ProductionRule p) {
+		// If there's anything except a non-terminal, this is false.
+		if (p.containsTerminalOr$()) {
+			return false;
+		}
+
+
+		for (AlphabetCharacter l : p.rhs) {
+			if (!derivesToLambdaSet.contains(l)) {
+				return false;
+			}
+		}
+
+		return true;
+	}
 
 	@Override
 	public String toString() {
@@ -265,7 +344,7 @@ public class CFG {
 
 		// Remove the last comma, and then generate non terminals
 		out = new StringBuilder(out.substring(0, out.length() - 2) + "\nNon-terminals: ");
-		for (AlphabetCharacter c: nonterminals) {
+		for (AlphabetCharacter c: nonTerminals) {
 			out.append(c).append(", ");
 		}
 
@@ -308,12 +387,4 @@ public class CFG {
 
 		return out.toString();
 	}
-
-
-
-
-
-
-
-
 }
