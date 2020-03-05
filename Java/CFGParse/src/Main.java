@@ -4,7 +4,7 @@ public class Main {
 		CFG grammar = new CFG(args[0]);
 		System.out.println(grammar);
 
-		grammar.generateDerivesToLambdaSet();
+		grammar.printDerivesToLambda();
 		grammar.printAllFirstSets();
 		grammar.printAllFollowSets();
 //		Set<AlphabetCharacter> first = grammar.deriveFirstSet()

@@ -3,13 +3,16 @@ import java.io.File;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-
+/**
+ * Represents a CFG to be used in an LL(1) parser.
+ */
 public class CFG {
-	private Set<AlphabetCharacter> nonterminals = new HashSet<>();
+	// These sets are filled after the constructor is called
+	private Set<AlphabetCharacter> nonTerminals = new HashSet<>();
 	private Set<AlphabetCharacter> terminals = new HashSet<>();
 	private Set<AlphabetCharacter> derivesToLambdaSet = new HashSet<>();
 
-	// nonterminal -> list[sequence of alphabet chars]
+	// nonterminal -> list[production rules]
 	private Map<AlphabetCharacter, ArrayList<ProductionRule>> productions = new HashMap<>();
 	private Map<AlphabetCharacter, ProductionRule> startingRule = new HashMap<>();
 
@@ -59,7 +62,7 @@ public class CFG {
 					AlphabetCharacter c = new AlphabetCharacter(token);
 
 					if (c.isNonTerminal()) {
-						nonterminals.add(c);
+						nonTerminals.add(c);
 					}
 					else if (!c.isEOF() && !c.isLambda()){
 						terminals.add(c);
@@ -81,35 +84,9 @@ public class CFG {
 
 			productions.get(currentLHS).add(currentRHS);
 		}
-	}
 
-	/**
-	 * Calls derivesToLambda? on all non-terminals
-	 */
-	public void generateDerivesToLambdaSet() {
-		for (AlphabetCharacter l : productions.keySet()) {
-			if (this.derivesToLambda(l, new Stack<>())) {
-				derivesToLambdaSet.add(l);
-			}
-		}
-	}
-
-	/**
-	 * Creates the first set of AlphabetCharacter l by calling deriveFirstSet() on all production rules
-	 * @param l
-	 * @return
-	 */
-	public Set<AlphabetCharacter> firstSetOf(AlphabetCharacter l) {
-		if (!productions.keySet().contains(l)) {
-			return new HashSet<>();
-		}
-
-		Set<AlphabetCharacter> firstSet = new HashSet<>();
-		for (ProductionRule rhs : productions.get(l)) {
-			firstSet.addAll(deriveFirstSetOfProductionRule(rhs.rhs, new HashSet<>()));
-		}
-
-		return firstSet;
+		// Generate the derivesToLambda set
+		generateDerivesToLambdaSet();
 	}
 
 	/**
@@ -166,12 +143,41 @@ public class CFG {
 	}
 
 	/**
+	 * Calls derivesToLambda? on all non-terminals
+	 */
+	private void generateDerivesToLambdaSet() {
+		for (AlphabetCharacter l : productions.keySet()) {
+			if (this.derivesToLambda(l, new Stack<>())) {
+				derivesToLambdaSet.add(l);
+			}
+		}
+	}
+
+	/**
+	 * Creates the first set of AlphabetCharacter l by calling deriveFirstSet() on all production rules
+	 * @param l - Alphabet character to find the firstSet of
+	 * @return the resulting set
+	 */
+	private Set<AlphabetCharacter> firstSetOf(AlphabetCharacter l) {
+		if (!productions.containsKey(l)) {
+			return new TreeSet<>();
+		}
+
+		Set<AlphabetCharacter> firstSet = new TreeSet<>();
+		for (ProductionRule rhs : productions.get(l)) {
+			firstSet.addAll(deriveFirstSetOfProductionRule(rhs.rhs, new TreeSet<>()));
+		}
+
+		return firstSet;
+	}
+
+	/**
 	 * Implements the derivesToLambda procedure given in Keith's pseudocode
 	 * @param l - AlphabetCharacter asked about
 	 * @param charStack - An empty stack
 	 * @return yes or no
 	 */
-	public boolean derivesToLambda(AlphabetCharacter l, Stack<Pair<ProductionRule, AlphabetCharacter>> charStack) {
+	private boolean derivesToLambda(AlphabetCharacter l, Stack<Pair<ProductionRule, AlphabetCharacter>> charStack) {
 		for (ProductionRule p : productions.get(l)) {
 			if (p.isLambdaProduction()) {
 				return true;
@@ -261,7 +267,7 @@ public class CFG {
 	 * @param visitedSet - initially an empty set.
 	 * @return the followSet of nonterminal A
 	 */
-	public Set<AlphabetCharacter> deriveFollowSetOfNonTerminal(AlphabetCharacter A, Set<AlphabetCharacter> visitedSet) {
+	private Set<AlphabetCharacter> deriveFollowSetOfNonTerminal(AlphabetCharacter A, Set<AlphabetCharacter> visitedSet) {
 		if (visitedSet.contains(A)) {
 			return new TreeSet<>();
 		}
@@ -269,22 +275,23 @@ public class CFG {
 		visitedSet.add(A);
 		Set<AlphabetCharacter> resultingSet = new TreeSet<>();
 
-		// for each p with A on RHS
+		// for each ProductionRule *p* with A on RHS
 		for (Map.Entry<AlphabetCharacter, ArrayList<ProductionRule>> entry : productions.entrySet()) {
 			ArrayList<ProductionRule> rhs = entry.getValue();
+
 			for (ProductionRule p : rhs) {
 				if (!p.rhs.contains(A)) {
 					continue;
 				}
 
-				// for each instance of A on rhs
+				// for each instance of A on rhs of p
 				for (int i = 0; i < p.rhs.size(); i++) {
 					AlphabetCharacter c = p.rhs.get(i);
 					if (!c.equals(A)) {
 						continue;
 					}
 
-					// Deep copy over to xBeta
+					// Deep copy over to xBeta everything to the right of this instance of A
 					ArrayList<AlphabetCharacter> xBeta = new ArrayList<>();
 					for (int j = i + 1; j < p.rhs.size(); j++) {
 						xBeta.add(new AlphabetCharacter(p.rhs.get(j)));
@@ -319,7 +326,7 @@ public class CFG {
 
 
 		for (AlphabetCharacter l : p.rhs) {
-			if (!derivesToLambda(l, new Stack<>())) {
+			if (!derivesToLambdaSet.contains(l)) {
 				return false;
 			}
 		}
@@ -337,7 +344,7 @@ public class CFG {
 
 		// Remove the last comma, and then generate non terminals
 		out = new StringBuilder(out.substring(0, out.length() - 2) + "\nNon-terminals: ");
-		for (AlphabetCharacter c: nonterminals) {
+		for (AlphabetCharacter c: nonTerminals) {
 			out.append(c).append(", ");
 		}
 
