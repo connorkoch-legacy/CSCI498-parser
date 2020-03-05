@@ -171,7 +171,6 @@ class CFG:
                                         result.update(G)
                         """
                 for rhs in alternations:
-                    print(rhs)
                     indices = (i for i, x in enumerate(rhs) if x == X)
 
                     for index in indices:
@@ -344,7 +343,7 @@ def print_stuff(cfg):
 
     print("First sets:")
     for nt in cfg.non_terminals:
-        print(nt, ":", cfg.first_set(nt)[0])
+        print(nt, ":", cfg.first_set([nt])[0])
 
     print("Follow sets:")
     for nt in cfg.non_terminals:
