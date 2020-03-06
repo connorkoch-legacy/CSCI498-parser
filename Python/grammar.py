@@ -365,7 +365,7 @@ def main():
     print_stuff(cfg)
 
     pt = parse_tree.ll_tabular_parsing(parse_tree.TokenStream(sys.argv[2]), cfg)
-    print(pt)
+    print("parse tree:", pt)
 
 if __name__ == "__main__":
     main()

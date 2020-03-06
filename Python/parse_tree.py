@@ -12,6 +12,7 @@ class TokenStream:
                     self.tokens.append((line[0], None))
                 elif len(line) == 2:
                     self.tokens.append((line[0], line[1]))
+        self.tokens.append("$")
 
     def peek(self):
         return self.tokens[self.index]
@@ -23,14 +24,25 @@ class TokenStream:
 
 class ParseTreeNode:
     def __init__(self, name, parent):
+        if type(name) != str:
+            print(name)
+            1 / 0
         self.name = name
         self.parent = parent
         self.children = []
 
+    def __str__(self):
+        if self.children:
+            return self.name + ": " + str(self.children)
+        else:
+            return self.name
+
+    def __repr__(self):
+        return str(self)
+
 
 # Returns None on failure
 def ll_tabular_parsing(ts, cfg):
-    print("\n\n\n")
     LLT = cfg.ll1_parse_table
     P = cfg.production_rules
     T = ParseTreeNode("root", None)
@@ -39,17 +51,21 @@ def ll_tabular_parsing(ts, cfg):
 
     while K:
         x = K.pop()
-        print("x is", x)
         if x in cfg.non_terminals:
             try:
-                print("P is", P)
-                print("P.items() is", list(P.items()))
-                print("LLT is", LLT)
-                print("ts.peek() is", ts.peek())
-                print("index is", LLT[x][ts.peek()[0]])
+                # print("P is", P)
+                # print("P.items() is", list(P.items()))
+                # print("LLT is", LLT)
+                # print("ts.peek() is", ts.peek())
+                # print("index is", LLT[x][ts.peek()[0]])
                 # the first time, this is P[1]
-                p = list(P.items())[LLT[x][ts.peek()[0]]]
-                print("p is", p)
+                i = 0
+                for lhs in P.keys():
+                    for production in P[lhs]:
+                        i += 1
+                        if i == LLT[x][ts.peek()[0]]:
+                            p = production
+                            break
             except KeyError:
                 print("KeyError")
                 # next token may not predict a p in P
@@ -57,8 +73,7 @@ def ll_tabular_parsing(ts, cfg):
                 return None
             # for now, our "marker" for K is None
             K.append(None)
-            R = [p[0]]
-            print("R is", R)
+            R = p
             for i in range(len(R) - 1, -1, -1):
                 K.append(R[i])
             Cur.children.append(ParseTreeNode(x, Cur))
@@ -66,10 +81,10 @@ def ll_tabular_parsing(ts, cfg):
 
         elif x in cfg.terminals or x == "$" or x == "lambda":
             if x in cfg.terminals or x == "$":
-                if x != ts.peek():
+                if x != ts.peek()[0]:
                     # FAIL
                     return None
-                x = ts.pop()
+                x = ts.pop()[0]
             Cur.children.append(ParseTreeNode(x, Cur))
 
         elif x is None:
