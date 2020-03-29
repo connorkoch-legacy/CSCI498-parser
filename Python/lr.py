@@ -1,9 +1,32 @@
+from copy import deepcopy
+
 # holds one production rule with a marker. Item sets are just sets of items
 class Item:
     def __init__(self, lhs, symbols, marker_index=0):
         self.lhs = lhs
         self.symbols = symbols
         self.marker = 0  # the symbols index right after the marker. So for say a.bc, marker would be 1
+
+    def __hash__(self):
+        return hash((self.lhs, tuple(self.symbols), self.marker))
+
+"""
+I: an item set of the grammar G
+returns an item set of G, which may be the same as I
+"""
+def closure(I):
+    C = deepcopy(I)
+    C_change_flag = True
+    while C_change_flag:    #while C keeps getting changed
+        C_change_flag = False
+        for item in C:
+            if item.symbols[item.marker].isupper(): #if the symbol to the right of the marker is a non-terminal
+                new_item = Item(item.symbols[item.marker], item.symbols)
+                if  new_item not in C:
+                    C.add(new_item)
+                    C_change_flag = True
+
+    return C
 
 
 """
@@ -22,3 +45,9 @@ def go_to(I, X):
 
     return closure(K)
 
+
+def main():
+
+
+if __name__ == "__main__":
+    main()

@@ -7,7 +7,6 @@ from pprint import pprint
 
 import parse_tree
 
-
 class CFG:
     def __init__(self):
         self.production_rules = OrderedDict() #{ LHS -> list of lists }, where inner lists are possible alternations}
@@ -369,5 +368,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-# main()
-# print_stuff(parse_input_file())
