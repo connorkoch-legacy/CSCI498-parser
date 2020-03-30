@@ -95,8 +95,9 @@ class CFG:
         return any(map(lambda e: e in self.terminals or e == self.start_symbol, production))
 
     def contains_lambda(self, rule):
-        # assert rule in self.production_rules
-
+        if rule == "lambda":
+            return True
+        
         for production in self.production_rules[rule]:
             if len(production) == 1 and production[0] == "lambda":
                 return True
@@ -131,13 +132,19 @@ class CFG:
         return False
 
     def first_set(self, XB, T=None):
+        # print(f"First Set: {XB} {T}")
+
         if T is None:
             T = set()
         if not XB:
             return (set(), set())
 
         result = set()
-        X = XB[0]
+        
+        if isinstance(XB, list):
+            X = XB[0]
+        elif isinstance(XB, str):
+            X = XB
 
         if X in self.terminals or X == '$':
             result.add(X)
