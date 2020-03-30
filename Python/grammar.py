@@ -294,11 +294,15 @@ class CFG:
         def __eq__(self, other):    #to check if an item is in a list of items
             return self.lhs == other.lhs and self.symbols == other.symbols and self.marker == other.marker
 
+        def __repr__(self):
+            return f"{self.lhs} -> {self.symbols[:self.marker]} . {self.symbols[self.marker:]}"
+
     """
     I: an item set of the grammar G
     returns an item set of G, which may be the same as I
     """
     def closure(self, I):
+        # print(f"I: {I}")
         C = list(deepcopy(I))   #create a copy, and convert the set to a list so we can append to the list while looping through it
         C_change_flag = True
         while C_change_flag:    #while C keeps getting changed
@@ -430,7 +434,7 @@ def test_closure_goto(cfg):
         item_2 = CFG.Item("S", "AA")
         item_3 = CFG.Item("A", "aA", 1)
         item_4 = CFG.Item("A", "b")
-
+        
         s = {item_3}
         new_item_set = cfg.closure(s)
         for item in new_item_set:
