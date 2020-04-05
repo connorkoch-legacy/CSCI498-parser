@@ -1,11 +1,8 @@
-import java.util.Objects;
-
 public class AlphabetCharacter implements Comparable<AlphabetCharacter> {
 	String label;
 
-	
 	public AlphabetCharacter(String label) {
-		this.label = label;
+		this.label = label.trim();
 	}
 
 	public AlphabetCharacter(AlphabetCharacter toBeCloned) {
@@ -19,16 +16,24 @@ public class AlphabetCharacter implements Comparable<AlphabetCharacter> {
 
 	/**
 	 * Whether this is strictly a *terminal* character (lowercase)
-	 * @return
+	 * @return see above
 	 */
 	public boolean isTerminal() {
 		return isTerminalToken(this.label);
 	}
 
+	/**
+	 * Strictly a non-terminal
+	 * @return see above
+	 */
 	public boolean isNonTerminal() {
 		return !isTerminalToken(label) && !isLambda() && !isEOF();
 	}
 
+	/**
+	 * Is λ?
+	 * @return == "lambda"
+	 */
 	public boolean isLambda() {
 		return "lambda".equals(label);
 	}
@@ -56,7 +61,7 @@ public class AlphabetCharacter implements Comparable<AlphabetCharacter> {
 		if (this == o) return true;
 		if (o == null || getClass() != o.getClass()) return false;
 		AlphabetCharacter that = (AlphabetCharacter) o;
-		return Objects.equals(label, that.label);
+		return label.equals(that.label);
 	}
 
 	@Override

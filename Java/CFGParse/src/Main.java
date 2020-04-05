@@ -4,9 +4,15 @@ public class Main {
 		CFG grammar = new CFG(args[0]);
 		System.out.println(grammar);
 
-		grammar.printDerivesToLambda();
-		grammar.printAllFirstSets();
-		grammar.printAllFollowSets();
-//		Set<AlphabetCharacter> first = grammar.deriveFirstSet()
+//		grammar.printDerivesToLambda();
+//		grammar.printAllFirstSets();
+//		grammar.printAllFollowSets();
+//		grammar.printAllPredictSets();
+
+//		System.out.println("Is disjoint? " + grammar.arePredictSetsDisjoint());
+
+//		LL1ParsingTable parseTableForCFG = grammar.generateParsingTable();
+
+		SLRParser slrParser = new SLRParser(grammar);
 	}
 }

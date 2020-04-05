@@ -8,13 +8,13 @@ import java.util.regex.Pattern;
  */
 public class CFG {
 	// These sets are filled after the constructor is called
-	private Set<AlphabetCharacter> nonTerminals = new HashSet<>();
-	private Set<AlphabetCharacter> terminals = new HashSet<>();
-	private Set<AlphabetCharacter> derivesToLambdaSet = new HashSet<>();
+	private Set<AlphabetCharacter> nonTerminals = new TreeSet<>();
+	private Set<AlphabetCharacter> terminals = new TreeSet<>();
+	private Set<AlphabetCharacter> derivesToLambdaSet = new TreeSet<>();
 
 	// nonterminal -> list[production rules]
 	private Map<AlphabetCharacter, ArrayList<ProductionRule>> productions = new HashMap<>();
-	private Map<AlphabetCharacter, ProductionRule> startingRule = new HashMap<>();
+	private AlphabetCharacter startingSymbol = null;
 
 	/**
 	 * Builds the CFG
@@ -27,12 +27,17 @@ public class CFG {
 
 		// Read file 1 line at a time
 		while (scanner.hasNextLine()) {
+			String line = scanner.nextLine();
+			// Skip spurious empty lines (thx Keith)
+			if (line.length() < 1) {
+				continue;
+			}
+
 			// If this is a proper file, there's 2 cases here:
 			// a) [lhs] -> [rhs]
 			// b)       | [rhs], which uses the previously parsed LHS
-			Pattern case1 = Pattern.compile("(?<LHS>.) -> (?<RHS>.+)");
+			Pattern case1 = Pattern.compile("(?<LHS>.+) -> (?<RHS>.+)");
 			Pattern case2 = Pattern.compile("(?: +)\\| (?<RHS>.+)");
-			String line = scanner.nextLine();
 			ProductionRule currentRHS = new ProductionRule();
 			Matcher m = case1.matcher(line);
 
@@ -53,27 +58,18 @@ public class CFG {
 				AlphabetCharacter c = new AlphabetCharacter("lambda");
 				currentRHS.addCharacterToRHS(c);
 			} else {
-				// Add all characters on the rightSideString to the appropriate set and to production object
-				for (int i = 0; i < m.group("RHS").length(); i++) {
-					String token = m.group("RHS").substring(i, i + 1);
-					if (token.equals(" ")) { // Skip spaces
-						continue;
-					}
+				// Add all space-delimited characters on the rightSideString to the appropriate set and to production object
+				String[] tokens = m.group("RHS").split(" ");
+				for (String token : tokens) {
 					AlphabetCharacter c = new AlphabetCharacter(token);
 
 					if (c.isNonTerminal()) {
 						nonTerminals.add(c);
-					}
-					else if (!c.isEOF() && !c.isLambda()){
+					} else if (!c.isEOF() && !c.isLambda()) {
 						terminals.add(c);
 					}
 
 					currentRHS.addCharacterToRHS(c);
-
-					// Log the starting rule
-					if (c.isEOF()) {
-						startingRule.put(currentLHS, currentRHS);
-					}
 				}
 			}
 
@@ -82,11 +78,39 @@ public class CFG {
 				productions.put(currentLHS, new ArrayList<>());
 			}
 
+			currentRHS.lhs = currentLHS;
 			productions.get(currentLHS).add(currentRHS);
+			nonTerminals.add(currentLHS);
+
+			// The starting symbol is always the first one in the file
+			if (startingSymbol == null) {
+				startingSymbol = currentLHS;
+			}
 		}
 
 		// Generate the derivesToLambda set
 		generateDerivesToLambdaSet();
+	}
+
+	/**
+	 * Returns all the production rules where nonTerminal is on the LHS. Used in SLRParser
+	 * @param nonTerminal - the LHS
+	 * @return - a list of the RHSs
+	 */
+	public ArrayList<ProductionRule> getProductionsOf(AlphabetCharacter nonTerminal) {
+		return productions.get(nonTerminal);
+	}
+
+	/**
+	 * Returns all grammar symbols (but lambda?)
+	 * @return
+	 */
+	public Set<AlphabetCharacter> getAllGrammarSymbols() {
+		Set<AlphabetCharacter> result = new HashSet<>();
+		result.addAll(nonTerminals);
+		result.addAll(terminals);
+		result.add(new AlphabetCharacter("$"));
+		return result;
 	}
 
 	/**
@@ -143,6 +167,117 @@ public class CFG {
 	}
 
 	/**
+	 * Prints the predictSet() of every production rule
+	 */
+	public void printAllPredictSets() {
+		for (Map.Entry<AlphabetCharacter, ArrayList<ProductionRule>> entry : productions.entrySet()) {
+			for (ProductionRule p : entry.getValue()) {
+				StringBuilder result = new StringBuilder("Predict(" + entry.getKey() + " " + p.toString().trim() + ") = {");
+				Set<AlphabetCharacter> predictSet = getPredictSetOfProductionRule(entry.getKey(), p);
+
+				for (AlphabetCharacter c : predictSet) {
+					result.append(c).append(", ");
+				}
+
+				// Remove the trailing ", " at the end of the set if it's there
+				if (!predictSet.isEmpty()) {
+					result.delete(result.length() - 2, result.length());
+				}
+				result.append("}");
+
+				System.out.println(result);
+			}
+		}
+	}
+
+	/**
+	 * Tests whether all the predict sets of this CFG are disjoint
+	 * @return true if they are, false otherwise
+	 */
+	public boolean arePredictSetsDisjoint() {
+		for (Map.Entry<AlphabetCharacter, ArrayList<ProductionRule>> entry : productions.entrySet()) {
+			Set<AlphabetCharacter> predictSets = new TreeSet<>();
+			for (ProductionRule p : entry.getValue()) {
+				Set<AlphabetCharacter> tempSet = getPredictSetOfProductionRule(entry.getKey(), p);
+
+				// If disjoint, union. Else, return false.
+				if (Collections.disjoint(tempSet, predictSets)) {
+					predictSets.addAll(tempSet);
+				} else {
+					return false;
+				}
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Returns what nonterminals derive to lambda. Used in testing
+	 * @return derivesToLambdaSet
+	 */
+	public Set<AlphabetCharacter> getDerivesToLambdaSet() {
+		return derivesToLambdaSet;
+	}
+
+	/**
+	 * Returns all non-terminals.
+	 * @return the non-terminals
+	 */
+	public Set<AlphabetCharacter> getNonTerminals() {
+		return nonTerminals;
+	}
+
+	/**
+	 * Returns the start symbol of this CFG, usually "S" or "START"
+	 * @return - the start symbol
+	 */
+	public AlphabetCharacter getStartingSymbol() {
+		return startingSymbol;
+	}
+
+	/**
+	 * Generates and returns the LL1ParsingTable of this grammar (if possible)
+	 * @return - the result
+	 */
+	public LL1ParsingTable generateParsingTable() throws Exception {
+		LL1ParsingTable result = new LL1ParsingTable();
+
+		// For every non-terminal, look at every production rule
+		for (Map.Entry<AlphabetCharacter, ArrayList<ProductionRule>> entry : productions.entrySet()) {
+			AlphabetCharacter nonTerminal = entry.getKey();
+
+			// For every production rule, generate the predict set
+			for (ProductionRule p : entry.getValue()) {
+				Set<AlphabetCharacter> predictSet = getPredictSetOfProductionRule(entry.getKey(), p);
+
+				// For every terminal in the predict set, add to the LL1 table.
+				for (AlphabetCharacter terminal : predictSet) {
+					result.addProductionRule(nonTerminal, terminal, p);
+				}
+			}
+		}
+
+		return result;
+	}
+
+	/**
+	 * Returns the predictSet() of a LHS -> ProductionRule
+	 * @param LHS - the non-terminal on the left-hand side of the production rule
+	 * @param p - the ProductionRule that represents the right-hand side
+	 * @return the result
+	 */
+	private Set<AlphabetCharacter> getPredictSetOfProductionRule(AlphabetCharacter LHS, ProductionRule p) {
+		Set<AlphabetCharacter> result = deriveFirstSetOfProductionRule(p.rhs, new HashSet<>());
+
+		if (entireRuleDerivesToLambda(p)) {
+			result.addAll(deriveFollowSetOfNonTerminal(LHS, new HashSet<>()));
+		}
+
+		return result;
+	}
+
+	/**
 	 * Calls derivesToLambda? on all non-terminals
 	 */
 	private void generateDerivesToLambdaSet() {
@@ -158,7 +293,7 @@ public class CFG {
 	 * @param l - Alphabet character to find the firstSet of
 	 * @return the resulting set
 	 */
-	private Set<AlphabetCharacter> firstSetOf(AlphabetCharacter l) {
+	public Set<AlphabetCharacter> firstSetOf(AlphabetCharacter l) {
 		if (!productions.containsKey(l)) {
 			return new TreeSet<>();
 		}
@@ -267,7 +402,7 @@ public class CFG {
 	 * @param visitedSet - initially an empty set.
 	 * @return the followSet of nonterminal A
 	 */
-	private Set<AlphabetCharacter> deriveFollowSetOfNonTerminal(AlphabetCharacter A, Set<AlphabetCharacter> visitedSet) {
+	public Set<AlphabetCharacter> deriveFollowSetOfNonTerminal(AlphabetCharacter A, Set<AlphabetCharacter> visitedSet) {
 		if (visitedSet.contains(A)) {
 			return new TreeSet<>();
 		}
@@ -319,11 +454,15 @@ public class CFG {
 	 * @return result
 	 */
 	private boolean entireRuleDerivesToLambda(ProductionRule p) {
+		// If this is a lambda production, then duh
+		if (p.isLambdaProduction()) {
+			return true;
+		}
+
 		// If there's anything except a non-terminal, this is false.
 		if (p.containsTerminalOr$()) {
 			return false;
 		}
-
 
 		for (AlphabetCharacter l : p.rhs) {
 			if (!derivesToLambdaSet.contains(l)) {
@@ -369,22 +508,7 @@ public class CFG {
 		}
 
 		// Print the grammar start symbol / goal
-		out.append("\n\nGrammar Start Symbol or Goal: ");
-		for (AlphabetCharacter key : startingRule.keySet()) {
-			out.append(key);
-		}
-
-		// Print the start symbol production rule
-		out.append("\n\nGrammar Start Production Rule: ");
-
-		for (AlphabetCharacter key : startingRule.keySet()) {
-			out.append(key).append(" -> ");
-
-			for (AlphabetCharacter c : startingRule.get(key).rhs) {
-				out.append(c).append(" ");
-			}
-		}
-
+		out.append("\n\nGrammar Start Symbol or Goal: ").append(startingSymbol);
 		return out.toString();
 	}
 }

@@ -2,6 +2,7 @@ import java.util.ArrayList;
 import java.util.Objects;
 
 public class ProductionRule {
+    public AlphabetCharacter lhs;
     public ArrayList<AlphabetCharacter> rhs;
 
     public ProductionRule() {
@@ -10,6 +11,25 @@ public class ProductionRule {
 
     public ProductionRule(ArrayList<AlphabetCharacter> rhs) {
         this.rhs = rhs;
+    }
+
+    public ProductionRule(AlphabetCharacter lhs, ArrayList<AlphabetCharacter> rhs) {
+        this.rhs = rhs;
+        this.lhs = lhs;
+    }
+
+    /**
+     * Copy constructor
+     * @param toBeCopied -
+     */
+    public ProductionRule(ProductionRule toBeCopied) {
+        rhs = new ArrayList<>(toBeCopied.rhs.size());
+
+        for (AlphabetCharacter i : toBeCopied.rhs) {
+            rhs.add(new AlphabetCharacter(i));
+        }
+
+        lhs = new AlphabetCharacter(toBeCopied.lhs);
     }
 
     public void addCharacterToRHS(AlphabetCharacter c) {
@@ -54,7 +74,7 @@ public class ProductionRule {
 
     @Override
     public String toString() {
-        StringBuilder result = new StringBuilder("-> ");
+        StringBuilder result = new StringBuilder(lhs.toString() + " -> ");
 
         for (AlphabetCharacter c : rhs) {
             result.append(c).append(" ");
