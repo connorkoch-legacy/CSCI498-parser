@@ -46,5 +46,14 @@ def test_predict_set_example(snapshot):
 def test_regex_grammar(snapshot):
     cfg = cfg_from_file("./test_cfgs/lga-ll1-parsing_grammar.cfg")
     print("\n./test_cfgs/lga-ll1-parsing_grammar.txt")
+    print(cfg.production_rules)
     print(cfg)
     snapshot.assert_match(cfg)
+
+def test_closure(snapshot):
+    cfg = cfg_from_file("./test_cfgs/item_tests/closure-test.cfg")
+    # print("\n./test_cfgs/lga-ll1-parsing_grammar.txt")
+    print(cfg.production_rules)
+    print(cfg)
+    assert false
+    # snapshot.assert_match(cfg)

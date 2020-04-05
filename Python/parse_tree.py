@@ -12,6 +12,7 @@ class TokenStream:
                     self.tokens.append((line[0], None))
                 elif len(line) == 2:
                     self.tokens.append((line[0], line[1]))
+        self.tokens.append("$")
 
     def peek(self):
         return self.tokens[self.index]
@@ -23,14 +24,25 @@ class TokenStream:
 
 class ParseTreeNode:
     def __init__(self, name, parent):
+        if type(name) != str:
+            print(name)
+            1 / 0
         self.name = name
         self.parent = parent
         self.children = []
 
+    def __str__(self):
+        if self.children:
+            return self.name + ": " + str(self.children)
+        else:
+            return self.name
+
+    def __repr__(self):
+        return str(self)
+
 
 # Returns None on failure
 def ll_tabular_parsing(ts, cfg):
-    print("\n\n\n")
     LLT = cfg.ll1_parse_table
     P = cfg.production_rules
     T = ParseTreeNode("root", None)
@@ -38,37 +50,41 @@ def ll_tabular_parsing(ts, cfg):
     K = ["S"]
 
     while K:
-        print(K)
         x = K.pop()
         if x in cfg.non_terminals:
             try:
-                print(P)
-                print(LLT)
-                print(ts.peek())
-                print("foo", LLT[x][ts.peek()[0]])
+                # print("P is", P)
+                # print("P.items() is", list(P.items()))
+                # print("LLT is", LLT)
+                # print("ts.peek() is", ts.peek())
+                # print("index is", LLT[x][ts.peek()[0]])
                 # the first time, this is P[1]
-                p = P[LLT[x][ts.peek()[0]]]
-                print(p)
-            # TODO: need to be more clever since P is a defaultdict and cannot possibly have a KE
+                i = 0
+                for lhs in P.keys():
+                    for production in P[lhs]:
+                        i += 1
+                        if i == LLT[x][ts.peek()[0]]:
+                            p = production
+                            break
             except KeyError:
+                print("KeyError")
                 # next token may not predict a p in P
                 # FAIL
                 return None
             # for now, our "marker" for K is None
             K.append(None)
-            R = cfg.production_rules[p]
-            # this will not work because R is not iterable
-            for i in range(len(R), -1, -1):
+            R = p
+            for i in range(len(R) - 1, -1, -1):
                 K.append(R[i])
             Cur.children.append(ParseTreeNode(x, Cur))
             Cur = Cur.children[-1]
 
         elif x in cfg.terminals or x == "$" or x == "lambda":
             if x in cfg.terminals or x == "$":
-                if x != ts.peek():
+                if x != ts.peek()[0]:
                     # FAIL
                     return None
-                x = ts.pop()
+                x = ts.pop()[0]
             Cur.children.append(ParseTreeNode(x, Cur))
 
         elif x is None:
